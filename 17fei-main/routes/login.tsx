@@ -1,5 +1,5 @@
 // 登录页
-import { page } from "$fresh/runtime.ts";
+import { Head, page } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { findUserByUsername } from "../lib/db.ts";
 import { verifyTurnstile, verifyPassword, createSessionToken, sessionCookie } from "../lib/userAuth.ts";
@@ -51,6 +51,13 @@ export const handler: Handlers<LoginData> = {
 export default function Login({ data }: PageProps<LoginData>) {
   return (
     <div class="min-h-screen flex items-center justify-center bg-gray-100">
+      <Head>
+        <script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          async
+          defer
+        />
+      </Head>
       <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 class="text-2xl font-bold mb-6 text-center">登录</h1>
         {data?.error && (
@@ -93,7 +100,8 @@ export default function Login({ data }: PageProps<LoginData>) {
           </button>
         </form>
         <p class="mt-4 text-center text-sm text-gray-600">
-          还没有账号？ <a href="/register" class="text-blue-500 hover:underline">注册</a>
+          还没有账号？
+          <a href="/register" class="text-blue-500 hover:underline">注册</a>
         </p>
       </div>
     </div>
