@@ -8,7 +8,7 @@ interface RegisterData {
   error?: string;
 }
 
-// 发送注册欢迎邮件（异步，不阻塞注册流程）
+// 发送注册欢迎邮件（不阻塞注册流程，失败仅记日志）
 async function sendWelcomeEmail(email: string, username: string) {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
@@ -88,9 +88,8 @@ export const handler: Handlers<RegisterData> = {
     const passwordHash = await hashPassword(password);
     await createUser(username, email, passwordHash);
 
-    // 注册成功后异步发送欢迎邮件（不阻塞跳转）
-    const resp = new Response(null, { status: 303 });
-    ctx.waitUntil?.(sendWelcomeEmail(email, username));
+    // 注册成功后发送欢迎邮件（await 确保执行，失败不影响注册）
+    await sendWelcomeEmail(email, username);
 
     // 注册成功即自动登录，跳转首页
     const token = createSessionToken(username);
