@@ -8,6 +8,42 @@ interface RegisterData {
   error?: string;
 }
 
+// 发送注册欢迎邮件（异步，不阻塞注册流程）
+async function sendWelcomeEmail(email: string, username: string) {
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) {
+    console.warn("未配置 RESEND_API_KEY，跳过欢迎邮件");
+    return;
+  }
+  const from = Deno.env.get("MAIL_FROM") ?? "Couple Game <onboarding@resend.dev>";
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: "欢迎来到情侣飞行棋 💕",
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2>欢迎你，${username}！</h2>
+          <p>你的账号注册成功啦～ 🎉</p>
+          <p>现在就邀请你的另一半，开始你们的专属飞行棋之旅吧：</p>
+          <p><a href="https://qqq-omega-ten.vercel.app/" style="display:inline-block;background:#db2777;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">立即开始游戏</a></p>
+          <p style="color:#999;font-size:12px">如果这不是你本人的操作，请忽略此邮件。</p>
+        </div>`,
+      }),
+    });
+    if (!res.ok) {
+      console.warn(`欢迎邮件发送失败: ${res.status}`);
+    }
+  } catch (err) {
+    console.warn("欢迎邮件发送异常:", err);
+  }
+}
+
 export const handler: Handlers<RegisterData> = {
   async GET(_req, ctx) {
     return ctx.render({});
@@ -51,6 +87,10 @@ export const handler: Handlers<RegisterData> = {
     // 创建用户（bcrypt 哈希，不存明文）
     const passwordHash = await hashPassword(password);
     await createUser(username, email, passwordHash);
+
+    // 注册成功后异步发送欢迎邮件（不阻塞跳转）
+    const resp = new Response(null, { status: 303 });
+    ctx.waitUntil?.(sendWelcomeEmail(email, username));
 
     // 注册成功即自动登录，跳转首页
     const token = createSessionToken(username);
