@@ -14,13 +14,14 @@ import * as $9 from "./routes/custom.tsx";
 import * as $10 from "./routes/greet/[name].tsx";
 import * as $11 from "./routes/index.tsx";
 import * as $12 from "./routes/join.tsx";
-import * as $13 from "./routes/member.tsx";
-import * as $14 from "./routes/position.tsx";
-import * as $15 from "./routes/positions.tsx";
-import * as $16 from "./routes/register.tsx";
-import * as $17 from "./routes/unopen.tsx";
-import * as $18 from "./routes/verify.ts";
-import * as $19 from "./routes/api/send-remind.ts";
+import * as $13 from "./routes/login.tsx";
+import * as $14 from "./routes/member.tsx";
+import * as $15 from "./routes/position.tsx";
+import * as $16 from "./routes/positions.tsx";
+import * as $17 from "./routes/register.tsx";
+import * as $18 from "./routes/unopen.tsx";
+import * as $19 from "./routes/verify.ts";
+import * as $20 from "./routes/api/send-remind.ts";
 import * as $$0 from "./islands/position-list.tsx";
 
 const manifest = {
@@ -38,13 +39,14 @@ const manifest = {
     "./routes/greet/[name].tsx": $10,
     "./routes/index.tsx": $11,
     "./routes/join.tsx": $12,
-    "./routes/member.tsx": $13,
-    "./routes/position.tsx": $14,
-    "./routes/positions.tsx": $15,
-    "./routes/register.tsx": $16,
-    "./routes/unopen.tsx": $17,
-    "./routes/verify.ts": $18,
-    "./routes/api/send-remind.ts": $19,
+    "./routes/login.tsx": $13,
+    "./routes/member.tsx": $14,
+    "./routes/position.tsx": $15,
+    "./routes/positions.tsx": $16,
+    "./routes/register.tsx": $17,
+    "./routes/unopen.tsx": $18,
+    "./routes/verify.ts": $19,
+    "./routes/api/send-remind.ts": $20,
   },
   islands: {
     "./islands/position-list.tsx": $$0,
