@@ -5,7 +5,6 @@ import { getUsernameFromRequest } from "../lib/userAuth.ts";
 const PUBLIC_PATHS = [
   "/login",
   "/register",
-  "/api/send-remind",
 ];
 
 export async function handler(
