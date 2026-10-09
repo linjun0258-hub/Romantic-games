@@ -4,7 +4,9 @@
 // 导入统一使用 npm: 原生协议（esm.sh 重定向漂移会触发 Vercel Deno 构建器崩溃）
 import { betterAuth } from "npm:better-auth@1.2.8";
 import postgres from "npm:postgres@3.4.5";
-import { hash as bcryptHash, compare as bcryptCompare } from "npm:bcryptjs@2.4.3";
+import bcryptjs from "npm:bcryptjs@2.4.3";
+const bcryptHash = (s: string) => bcryptjs.hashSync(s);
+const bcryptCompare = (a: string, b: string) => bcryptjs.compareSync(a, b);
 
 const baseURL = Deno.env.get("BETTER_AUTH_URL") ??
   "https://qqq-omega-ten.vercel.app";
