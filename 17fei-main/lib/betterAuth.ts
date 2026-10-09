@@ -1,11 +1,13 @@
 // better-auth 认证配置：PostgreSQL 数据库 + 邮箱密码登录（bcrypt 兼容旧用户）+ Google 社交登录
 // 注意：lib/auth.ts 已被会员会话模块占用，故配置放在 lib/betterAuth.ts；
 // better-auth 需要 postgres.js 连接实例，而 db.ts 使用 Neon HTTP 驱动，故此处独立建立连接
-import { betterAuth } from "https://esm.sh/better-auth@1.2.8";
-import postgres from "https://esm.sh/postgres@3.4.5";
-import { hash as bcryptHash, compare as bcryptCompare } from "https://esm.sh/bcryptjs@2.4.3";
+// 导入统一使用 npm: 原生协议（esm.sh 重定向漂移会触发 Vercel Deno 构建器崩溃）
+import { betterAuth } from "npm:better-auth@1.2.8";
+import postgres from "npm:postgres@3.4.5";
+import { hash as bcryptHash, compare as bcryptCompare } from "npm:bcryptjs@2.4.3";
 
-const baseURL = Deno.env.get("BETTER_AUTH_URL") ?? "https://qqq-omega-ten.vercel.app";
+const baseURL = Deno.env.get("BETTER_AUTH_URL") ??
+  "https://qqq-omega-ten.vercel.app";
 
 // better-auth 专用连接（postgres.js 实例，better-auth 内部依赖其查询/事务能力）
 const authSql = postgres(Deno.env.get("DATABASE_URL") ?? "postgres://invalid", {
@@ -32,12 +34,12 @@ export const auth = betterAuth({
   },
   ...(googleEnabled
     ? {
-        socialProviders: {
-          google: {
-            clientId: googleClientId!,
-            clientSecret: googleClientSecret!,
-          },
+      socialProviders: {
+        google: {
+          clientId: googleClientId!,
+          clientSecret: googleClientSecret!,
         },
-      }
+      },
+    }
     : {}),
 });
