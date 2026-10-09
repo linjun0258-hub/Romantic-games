@@ -28,7 +28,9 @@
     "twind": "https://esm.sh/twind@0.16.19",
     "twind/": "https://esm.sh/twind@0.16.19/",
     "$std/": "https://deno.land/std@0.193.0/",
-    "postgres": "npm:postgres@3.4.5"
+    "postgres": "npm:postgres@3.4.5",
+    "better-auth": "npm:better-auth@1.2.8",
+    "bcryptjs": "npm:bcryptjs@2.4.3"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
