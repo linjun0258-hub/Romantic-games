@@ -1,14 +1,16 @@
-// 注册页：用户名 + 邮箱 + 密码 + Turnstile 人机验证
+// 注册页：用户名 + 邮箱 + 密码 + Turnstile 人机验证（better-auth）
 import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { ensureTables, findUserByUsername, findUserByEmail, createUser } from "../lib/db.ts";
-import { verifyTurnstile, hashPassword, createSessionToken, sessionCookie } from "../lib/userAuth.ts";
+import { auth } from "../lib/betterAuth.ts";
+import { ensureAuthTables } from "../lib/authTables.ts";
+import { sql } from "../lib/db.ts";
+import { verifyTurnstile } from "../lib/userAuth.ts";
 
 interface RegisterData {
   error?: string;
 }
 
-// 发送注册欢迎邮件（不阻塞注册流程，失败仅记日志）
+// 发送注册欢迎邮件（失败仅记日志，不影响注册）
 async function sendWelcomeEmail(email: string, username: string) {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
@@ -74,27 +76,36 @@ export const handler: Handlers<RegisterData> = {
       return ctx.render({ error: "密码至少 8 位" }, { status: 400 });
     }
 
-    await ensureTables();
+    await ensureAuthTables();
 
-    // 重复检查
-    if (await findUserByUsername(username)) {
+    // 用户名占用检查（better-auth 只保证邮箱唯一）
+    const taken = await sql`SELECT 1 FROM "user" WHERE "name" = ${username} LIMIT 1`;
+    if (taken.length > 0) {
       return ctx.render({ error: "用户名已被占用" }, { status: 400 });
     }
-    if (await findUserByEmail(email)) {
-      return ctx.render({ error: "该邮箱已注册" }, { status: 400 });
+
+    // better-auth 邮箱密码注册（bcrypt 自定义哈希，与老用户兼容）
+    const res = await auth.api.signUpEmail({
+      body: { email, password, name: username },
+      asResponse: true,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null) as { message?: string } | null;
+      const msg = data?.message ?? "";
+      return ctx.render(
+        { error: msg.toLowerCase().includes("already") ? "该邮箱已注册" : "注册失败，请稍后重试" },
+        { status: 400 },
+      );
     }
 
-    // 创建用户（bcrypt 哈希，不存明文）
-    const passwordHash = await hashPassword(password);
-    await createUser(username, email, passwordHash);
-
-    // 注册成功后发送欢迎邮件（await 确保执行，失败不影响注册）
+    // 注册成功后发送欢迎邮件
     await sendWelcomeEmail(email, username);
 
-    // 注册成功即自动登录，跳转首页
-    const token = createSessionToken(username);
+    // 复制会话 Cookie：注册即自动登录，跳转首页
     const headers = new Headers({ Location: "/" });
-    headers.append("Set-Cookie", sessionCookie(token));
+    for (const c of res.headers.getSetCookie()) {
+      headers.append("set-cookie", c);
+    }
     return new Response(null, { status: 303, headers });
   },
 };
