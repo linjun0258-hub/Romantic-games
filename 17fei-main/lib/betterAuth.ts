@@ -1,47 +1,50 @@
-// better-auth 认证配置：PostgreSQL 数据库 + 邮箱密码登录（bcrypt 兼容旧用户）+ Google 社交登录
-// 注意：lib/auth.ts 已被会员会话模块占用，故配置放在 lib/betterAuth.ts；
-// better-auth 需要 postgres.js 连接实例，而 db.ts 使用 Neon HTTP 驱动，故此处独立建立连接
-// 导入统一使用 npm: 原生协议（esm.sh 重定向漂移会触发 Vercel Deno 构建器崩溃）
-import { betterAuth } from "npm:better-auth@1.2.8";
-import postgres from "npm:postgres@3.4.5";
-import bcryptjs from "npm:bcryptjs@2.4.3";
-const bcryptHash = (s: string) => bcryptjs.hashSync(s);
-const bcryptCompare = (a: string, b: string) => bcryptjs.compareSync(a, b);
+// better-auth 认证配置（动态导入 + 降级 stub）
+// Vercel Deno 运行时以 --cached-only 加载；npm 包不在构建复制清单中，新 npm 包会缺缓存
+// 此处使用 top-level await + try/catch：若 better-auth 加载失败，降级为 stub 保证站点其余功能正常
+// 老用户可通过 routes 中的 fallback 逻辑继续使用自定义认证（userAuth.ts）
 
-const baseURL = Deno.env.get("BETTER_AUTH_URL") ??
-  "https://qqq-omega-ten.vercel.app";
+export const googleEnabled = false;
 
-// better-auth 专用连接（postgres.js 实例，better-auth 内部依赖其查询/事务能力）
-const authSql = postgres(Deno.env.get("DATABASE_URL") ?? "postgres://invalid", {
-  prepare: false,
-  max: 5,
-});
+let realAuth: unknown = null;
 
-const googleClientId = Deno.env.get("GOOGLE_CLIENT_ID");
-const googleClientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
-export const googleEnabled = Boolean(googleClientId && googleClientSecret);
+try {
+  const [{ betterAuth }, { default: postgres }, { default: bcryptjs }] = await Promise.all([
+    import("npm:better-auth@1.2.8"),
+    import("npm:postgres@3.4.5"),
+    import("npm:bcryptjs@2.4.3"),
+  ]);
 
-export const auth = betterAuth({
-  database: authSql,
-  secret: Deno.env.get("SESSION_SECRET") ?? "better-auth-dev-secret-change-me",
-  baseURL,
-  trustedOrigins: [baseURL],
-  emailAndPassword: {
-    enabled: true,
-    password: {
-      hash: (password: string) => bcryptHash(password),
-      verify: async ({ password, hash }: { password: string; hash: string }) =>
-        bcryptCompare(password, hash),
+  const authSql = postgres(Deno.env.get("DATABASE_URL") ?? "postgres://invalid", {
+    prepare: false,
+    max: 5,
+  });
+
+  realAuth = betterAuth({
+    database: authSql,
+    secret: Deno.env.get("SESSION_SECRET") ?? "better-auth-dev-secret-change-me",
+    baseURL: Deno.env.get("BETTER_AUTH_URL") ?? "https://qqq-omega-ten.vercel.app",
+    trustedOrigins: [Deno.env.get("BETTER_AUTH_URL") ?? "https://qqq-omega-ten.vercel.app"],
+    emailAndPassword: {
+      enabled: true,
+      password: {
+        hash: (password: string) => bcryptjs.hashSync(password),
+        verify: async ({ password, hash }: { password: string; hash: string }) =>
+          bcryptjs.compareSync(password, hash),
+      },
+    },
+  });
+} catch (e) {
+  console.error("[betterAuth] better-auth 初始化失败，认证功能降级:", String(e));
+}
+
+export const auth = (realAuth as any) ?? {
+  api: {
+    signUpEmail: async () => {
+      throw new Error("认证服务暂不可用（better-auth 加载失败）");
+    },
+    signInEmail: async () => {
+      throw new Error("认证服务暂不可用（better-auth 加载失败）");
     },
   },
-  ...(googleEnabled
-    ? {
-      socialProviders: {
-        google: {
-          clientId: googleClientId!,
-          clientSecret: googleClientSecret!,
-        },
-      },
-    }
-    : {}),
-});
+  handler: () => new Response("认证服务暂不可用", { status: 503 }),
+};
