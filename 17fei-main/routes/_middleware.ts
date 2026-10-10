@@ -2,9 +2,12 @@ import { MiddlewareHandlerContext } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
 
 // 无需登录即可访问的路径
+// /api/auth/* 必须公开：会话查询(get-session)、退出登录(signout)、
+// 以及 Google OAuth 回调(/api/auth/callback/google，Google 跳回时浏览器尚未持有会话 Cookie)
 const PUBLIC_PATHS = [
   "/login",
   "/register",
+  "/api/auth",
 ];
 
 export async function handler(
@@ -13,10 +16,8 @@ export async function handler(
 ) {
   const url = new URL(request.url);
   const pathname = url.pathname;
-
   // 登录/注册页公开访问
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
-
   if (!isPublic) {
     const username = getUsernameFromRequest(request);
     if (!username) {
@@ -27,7 +28,6 @@ export async function handler(
       });
     }
   }
-
   const response = await ctx.next();
   const headers = new Headers(response.headers);
   headers.set("X-Content-Type-Options", "nosniff");
