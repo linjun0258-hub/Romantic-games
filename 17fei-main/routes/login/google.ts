@@ -1,39 +1,21 @@
-// Google 登录入口：发起 better-auth 的 Google OAuth 流程
-// 未配置 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 时回登录页并提示
+// Google 登录入口：发起自建 Google OAuth 流程（原生 API 实现，零 npm 依赖）
+// 凭据来自环境变量 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+// 未配置时回登录页并提示
 import { Handlers } from "$fresh/server.ts";
-import { auth, googleEnabled } from "../../lib/betterAuth.ts";
-import { ensureAuthTables } from "../../lib/authTables.ts";
+import { buildAuthorizeUrl, googleConfigured } from "../../lib/googleOAuth.ts";
 
 export const handler: Handlers = {
-  async GET() {
-    if (!googleEnabled) {
-      const headers = new Headers({ Location: "/login?error=google_not_configured" });
-      return new Response(null, { status: 302, headers });
-    }
-    await ensureAuthTables();
-    try {
-      // 发起 OAuth：asResponse 拿到带 Set-Cookie（OAuth state）的 Response
-      const res = await auth.api.signInSocial({
-        body: { provider: "google", callbackURL: "/" },
-        asResponse: true,
+  async GET(req) {
+    const url = new URL(req.url);
+    if (!googleConfigured()) {
+      const headers = new Headers({
+        Location: `/login?error=${encodeURIComponent("Google 登录暂未配置，请联系管理员")}`,
       });
-      // 响应体为 JSON { url, redirect }，url 即 Google 授权页地址
-      const data = await res.json().catch(() => null) as { url?: string } | null;
-      const target = data?.url;
-      if (!target) {
-        const headers = new Headers({ Location: "/login?error=google_failed" });
-        return new Response(null, { status: 302, headers });
-      }
-      // 转发 state Cookie 并 302 跳转到 Google 授权页
-      const headers = new Headers({ Location: target });
-      for (const c of res.headers.getSetCookie()) {
-        headers.append("set-cookie", c);
-      }
-      return new Response(null, { status: 302, headers });
-    } catch (err) {
-      console.warn("Google 登录发起失败:", err);
-      const headers = new Headers({ Location: "/login?error=google_failed" });
       return new Response(null, { status: 302, headers });
     }
+    // 支持登录前页面回跳：/login/google?redirect=/member
+    const redirectTo = url.searchParams.get("redirect") ?? "/";
+    const target = await buildAuthorizeUrl(url.origin, redirectTo);
+    return new Response(null, { status: 302, headers: { Location: target } });
   },
 };
