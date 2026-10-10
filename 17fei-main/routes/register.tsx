@@ -1,40 +1,58 @@
-// 注册页：用户名 + 邮箱 + 密码 + Turnstile 人机验证（better-auth）
+// 注册页：用户名 + 邮箱 + 密码 + Turnstile 人机验证（仅服务端配置密钥时启用）
+// 另提供 Google 登录入口（OAuth 回调会自动创建账号）
 import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { auth } from "../lib/betterAuth.ts";
-import { ensureAuthTables } from "../lib/authTables.ts";
-import { sql } from "../lib/db.ts";
-import { verifyTurnstile } from "../lib/userAuth.ts";
+import {
+  ensureTables,
+  findUserByUsername,
+  findUserByEmail,
+  createUser,
+} from "../lib/db.ts";
+import {
+  verifyTurnstile,
+  hashPassword,
+  createSessionToken,
+  sessionCookie,
+} from "../lib/userAuth.ts";
 
 interface RegisterData {
   error?: string;
+  turnstileSiteKey?: string;
 }
 
-// 发送注册欢迎邮件（失败仅记日志，不影响注册）
+// 仅当 SECRET_KEY 与 SITE_KEY 同时配置时才启用人机验证，
+// 避免凭据缺失导致所有人无法注册
+const turnstileEnabled = () =>
+  Boolean(
+    Deno.env.get("TURNSTILE_SECRET_KEY") && Deno.env.get("TURNSTILE_SITE_KEY"),
+  );
+
+// 注册欢迎邮件（异步发送，不阻塞注册流程）
 async function sendWelcomeEmail(email: string, username: string) {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
-    console.warn("未配置 RESEND_API_KEY，跳过欢迎邮件");
+    console.warn("缺少 RESEND_API_KEY，跳过欢迎邮件");
     return;
   }
-  const from = Deno.env.get("MAIL_FROM") ?? "Couple Game <onboarding@resend.dev>";
+  const from = Deno.env.get("MAIL_FROM") ??
+    "Couple Game <onboarding@resend.dev>";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         from,
         to: [email],
-        subject: "欢迎来到情侣飞行棋 💕",
+        subject: "欢迎加入情侣游戏 ❤",
         html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-          <h2>欢迎你，${username}！</h2>
-          <p>你的账号注册成功啦～ 🎉</p>
-          <p>现在就邀请你的另一半，开始你们的专属飞行棋之旅吧：</p>
+          <h2>你好，${username}！</h2>
+          <p>你的情侣游戏账号创建成功！🎉</p>
+          <p>现在可以和你的另一半开始甜蜜的游戏之旅了。</p>
           <p><a href="https://qqq-omega-ten.vercel.app/" style="display:inline-block;background:#db2777;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">立即开始游戏</a></p>
-          <p style="color:#999;font-size:12px">如果这不是你本人的操作，请忽略此邮件。</p>
+          <p style="color:#999;font-size:12px">如果按钮无法点击，请复制以下链接到浏览器：<br/>https://qqq-omega-ten.vercel.app/</p>
         </div>`,
       }),
     });
@@ -48,7 +66,11 @@ async function sendWelcomeEmail(email: string, username: string) {
 
 export const handler: Handlers<RegisterData> = {
   async GET(_req, ctx) {
-    return ctx.render({});
+    return ctx.render({
+      turnstileSiteKey: turnstileEnabled()
+        ? Deno.env.get("TURNSTILE_SITE_KEY")
+        : undefined,
+    });
   },
   async POST(req, ctx) {
     const form = await req.formData();
@@ -56,10 +78,12 @@ export const handler: Handlers<RegisterData> = {
     const email = (form.get("email") as string | null)?.trim() ?? "";
     const password = (form.get("password") as string | null) ?? "";
 
-    // Turnstile 人机验证
-    const ok = await verifyTurnstile(form.get("cf-turnstile-response"));
-    if (!ok) {
-      return ctx.render({ error: "人机验证失败，请重试" }, { status: 400 });
+    // 人机验证：仅当服务端配置了密钥时才校验
+    if (turnstileEnabled()) {
+      const ok = await verifyTurnstile(form.get("cf-turnstile-response"));
+      if (!ok) {
+        return ctx.render({ error: "人机验证失败，请重试" }, { status: 400 });
+      }
     }
 
     // 输入校验
@@ -67,7 +91,10 @@ export const handler: Handlers<RegisterData> = {
       return ctx.render({ error: "请填写所有字段" }, { status: 400 });
     }
     if (!/^[a-zA-Z0-9_-]{2,50}$/.test(username)) {
-      return ctx.render({ error: "用户名需为 2-50 位字母、数字、下划线或中划线" }, { status: 400 });
+      return ctx.render(
+        { error: "用户名需为 2-50 位字母、数字、下划线或中划线" },
+        { status: 400 },
+      );
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return ctx.render({ error: "请输入正确的邮箱地址" }, { status: 400 });
@@ -76,36 +103,25 @@ export const handler: Handlers<RegisterData> = {
       return ctx.render({ error: "密码至少 8 位" }, { status: 400 });
     }
 
-    await ensureAuthTables();
+    await ensureTables();
 
-    // 用户名占用检查（better-auth 只保证邮箱唯一）
-    const taken = await sql`SELECT 1 FROM "user" WHERE "name" = ${username} LIMIT 1`;
-    if (taken.length > 0) {
+    // 重复检查
+    if (await findUserByUsername(username)) {
       return ctx.render({ error: "用户名已被占用" }, { status: 400 });
     }
-
-    // better-auth 邮箱密码注册（bcrypt 自定义哈希，与老用户兼容）
-    const res = await auth.api.signUpEmail({
-      body: { email, password, name: username },
-      asResponse: true,
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => null) as { message?: string } | null;
-      const msg = data?.message ?? "";
-      return ctx.render(
-        { error: msg.toLowerCase().includes("already") ? "该邮箱已注册" : "注册失败，请稍后重试" },
-        { status: 400 },
-      );
+    if (await findUserByEmail(email)) {
+      return ctx.render({ error: "该邮箱已注册" }, { status: 400 });
     }
 
-    // 注册成功后发送欢迎邮件
-    await sendWelcomeEmail(email, username);
+    // 创建用户（bcrypt 哈希，不存明文）
+    const passwordHash = await hashPassword(password);
+    await createUser(username, email, passwordHash);
 
-    // 复制会话 Cookie：注册即自动登录，跳转首页
+    // 注册成功即自动登录，并发送欢迎邮件（不阻塞）
+    sendWelcomeEmail(email, username);
+    const token = createSessionToken(username);
     const headers = new Headers({ Location: "/" });
-    for (const c of res.headers.getSetCookie()) {
-      headers.append("set-cookie", c);
-    }
+    headers.append("Set-Cookie", sessionCookie(token));
     return new Response(null, { status: 303, headers });
   },
 };
@@ -113,13 +129,15 @@ export const handler: Handlers<RegisterData> = {
 export default function Register({ data }: PageProps<RegisterData>) {
   return (
     <div class="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      <Head>
-        <script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-          async
-          defer
-        />
-      </Head>
+      {data?.turnstileSiteKey && (
+        <Head>
+          <script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async
+            defer
+          />
+        </Head>
+      )}
       <h1 class="text-3xl font-bold mb-2">注册</h1>
       <p class="mb-8 text-gray-400">注册后可保存游戏进度</p>
       {data?.error && <p class="mb-4 text-red-400">{data.error}</p>}
@@ -150,10 +168,12 @@ export default function Register({ data }: PageProps<RegisterData>) {
           placeholder="密码（至少 8 位）"
           class="px-4 py-3 rounded bg-gray-800 border border-gray-700 focus:border-pink-500 outline-none"
         />
-        <div
-          class="cf-turnstile"
-          data-sitekey="0x4AAAAAAE94JmZM0XJ7hwkd"
-        />
+        {data?.turnstileSiteKey && (
+          <div
+            class="cf-turnstile"
+            data-sitekey={data.turnstileSiteKey}
+          />
+        )}
         <button
           type="submit"
           class="px-4 py-3 rounded bg-pink-600 hover:bg-pink-500 font-bold"
@@ -163,6 +183,12 @@ export default function Register({ data }: PageProps<RegisterData>) {
       </form>
       <p class="mt-6 text-sm text-gray-400">
         已有账号？ <a href="/login" class="text-pink-400 hover:underline">登录</a>
+      </p>
+      <p class="mt-3 text-sm text-gray-400">
+        或{" "}
+        <a href="/login/google" class="text-pink-400 hover:underline">
+          使用 Google 账号登录 / 注册
+        </a>
       </p>
     </div>
   );
