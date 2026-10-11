@@ -11,21 +11,24 @@ import * as $6 from "./routes/aiok.tsx";
 import * as $7 from "./routes/api/auth/callback/google.ts";
 import * as $8 from "./routes/api/auth/get-session.ts";
 import * as $9 from "./routes/api/auth/signout.ts";
-import * as $10 from "./routes/api/send-remind.ts";
-import * as $11 from "./routes/card.tsx";
-import * as $12 from "./routes/card_version.tsx";
-import * as $13 from "./routes/custom.tsx";
-import * as $14 from "./routes/greet/[name].tsx";
-import * as $15 from "./routes/index.tsx";
-import * as $16 from "./routes/join.tsx";
-import * as $17 from "./routes/login.tsx";
-import * as $18 from "./routes/login/google.ts";
-import * as $19 from "./routes/member.tsx";
-import * as $20 from "./routes/position.tsx";
-import * as $21 from "./routes/positions.tsx";
-import * as $22 from "./routes/register.tsx";
-import * as $23 from "./routes/unopen.tsx";
-import * as $24 from "./routes/verify.ts";
+import * as $10 from "./routes/api/creem/checkout.ts";
+import * as $11 from "./routes/api/creem/webhook.ts";
+import * as $12 from "./routes/api/send-remind.ts";
+import * as $13 from "./routes/card.tsx";
+import * as $14 from "./routes/card_version.tsx";
+import * as $15 from "./routes/custom.tsx";
+import * as $16 from "./routes/greet/[name].tsx";
+import * as $17 from "./routes/index.tsx";
+import * as $18 from "./routes/join.tsx";
+import * as $19 from "./routes/login.tsx";
+import * as $20 from "./routes/login/google.ts";
+import * as $21 from "./routes/member.tsx";
+import * as $22 from "./routes/position.tsx";
+import * as $23 from "./routes/positions.tsx";
+import * as $24 from "./routes/premium.tsx";
+import * as $25 from "./routes/register.tsx";
+import * as $26 from "./routes/unopen.tsx";
+import * as $27 from "./routes/verify.ts";
 import * as $$0 from "./islands/position-list.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -41,26 +44,29 @@ const manifest = {
     "./routes/api/auth/callback/google.ts": $7,
     "./routes/api/auth/get-session.ts": $8,
     "./routes/api/auth/signout.ts": $9,
-    "./routes/api/send-remind.ts": $10,
-    "./routes/card.tsx": $11,
-    "./routes/card_version.tsx": $12,
-    "./routes/custom.tsx": $13,
-    "./routes/greet/[name].tsx": $14,
-    "./routes/index.tsx": $15,
-    "./routes/join.tsx": $16,
-    "./routes/login.tsx": $17,
-    "./routes/login/google.ts": $18,
-    "./routes/member.tsx": $19,
-    "./routes/position.tsx": $20,
-    "./routes/positions.tsx": $21,
-    "./routes/register.tsx": $22,
-    "./routes/unopen.tsx": $23,
-    "./routes/verify.ts": $24,
+    "./routes/api/creem/checkout.ts": $10,
+    "./routes/api/creem/webhook.ts": $11,
+    "./routes/api/send-remind.ts": $12,
+    "./routes/card.tsx": $13,
+    "./routes/card_version.tsx": $14,
+    "./routes/custom.tsx": $15,
+    "./routes/greet/[name].tsx": $16,
+    "./routes/index.tsx": $17,
+    "./routes/join.tsx": $18,
+    "./routes/login.tsx": $19,
+    "./routes/login/google.ts": $20,
+    "./routes/member.tsx": $21,
+    "./routes/position.tsx": $22,
+    "./routes/positions.tsx": $23,
+    "./routes/premium.tsx": $24,
+    "./routes/register.tsx": $25,
+    "./routes/unopen.tsx": $26,
+    "./routes/verify.ts": $27,
   },
   islands: {
     "./islands/position-list.tsx": $$0,
   },
   baseUrl: import.meta.url,
-} satisfies Manifest;
+};
 
 export default manifest;
