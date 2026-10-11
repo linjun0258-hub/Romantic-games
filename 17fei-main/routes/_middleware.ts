@@ -32,7 +32,10 @@ const PUBLIC_EXACT = [
 
 // 前缀匹配：等于前缀，或以「前缀 + /」开头即放行
 const PUBLIC_PREFIX = [
-  // /api/auth/* 必须公开：会话查询(get-session)、退出登录(signout)、
+  // /api/auth/* 必须公开：会话查询(  // 登录子路由公开：/login/google 为 Google OAuth 发起入口（游客无会话），必须放行；
+  // 若只在 PUBLIC_EXACT 精确放行 /login，/login/google 会被本中间件弹回 /login，OAuth 无法发起
+  "/login",
+
   // 以及 Google OAuth 回调(/api/auth/callback/google，Google 跳回时浏览器尚未持有会话 Cookie)
   "/api/auth",
   // Creem 支付回调：Creem 服务器直连 webhook，无浏览器会话，必须公开
