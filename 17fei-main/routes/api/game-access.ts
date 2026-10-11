@@ -1,6 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
-import { getUsernameFromRequest } from "../../../lib/userAuth.ts";
-import { getGuestQuota, isMember, recordGuestPlay } from "../../../lib/gameAccess.ts";
+import { getUsernameFromRequest } from "../../lib/userAuth.ts";
+import { getGuestQuota, isMember, recordGuestPlay } from "../../lib/gameAccess.ts";
 
 const LIMITS: Record<string, number> = { fxq: 1, card: 3, position: 3 };
 
