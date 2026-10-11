@@ -1,6 +1,6 @@
 // 游客试玩限额计数模块（按天 + IP + surface 三维去重）
 // 表：guest_plays(day DATE, ip VARCHAR(64), surface VARCHAR(32), used INT DEFAULT 0, PRIMARY KEY(day, ip, surface))
-import { neon } from "https://esm.sh/@neondatabase/serverless@1.0.0";
+import { neon } from "npm:@neondatabase/serverless@1.0.0";
 
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
 const sql = neon(DATABASE_URL ?? "postgres://invalid");
