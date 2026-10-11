@@ -24,7 +24,9 @@ export const handler: Handlers = {
     const fail = (msg: string) =>
       new Response(null, {
         status: 303,
-        headers: { Location: `/login?error=${encodeURIComponent(msg)}` },
+        headers: {
+          Location: `/login?error=${encodeURIComponent(msg)}`,
+        },
       });
 
     // Google 侧错误或用户取消授权
@@ -56,7 +58,6 @@ export const handler: Handlers = {
       console.error("[google-oauth] token/userinfo failed:", e);
       return fail("Google 登录失败：令牌交换出错，请重试");
     }
-
     if (!info.email) return fail("未能获取 Google 账号邮箱，请重试");
 
     await ensureTables();
@@ -77,9 +78,9 @@ export const handler: Handlers = {
       user = await createUser(username, info.email, placeholder);
     }
 
-    // 签发会话 Cookie 并回跳到登录前页面
+    // 签发会话 Cookie 并回跳：登录前页面 redirect 优先，否则进独立大厅
     const token = createSessionToken(user.username);
-    const redirectTo = st.redirectTo || "/";
+    const redirectTo = st.redirectTo || "/hall";
     const headers = new Headers({ Location: redirectTo });
     headers.append("Set-Cookie", sessionCookie(token));
     return new Response(null, { status: 303, headers });
