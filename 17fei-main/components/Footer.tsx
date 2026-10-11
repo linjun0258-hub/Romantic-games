@@ -6,9 +6,6 @@ export default function Footer() {
         <a class="bg-red-700 border rounded py-2 px-4 font-black" href="/about">
           关于
         </a>
-        <a class="bg-pink-600 border rounded py-2 px-4 font-black" href="/join">
-          免费会员
-        </a>
         <a class="bg-pink-500 border rounded py-2 px-4 font-black" href="/premium">
           会员定价
         </a>
