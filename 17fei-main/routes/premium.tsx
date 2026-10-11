@@ -1,6 +1,7 @@
 // Premium 会员定价页：/premium
 // 三分支渲染：已开通（展示订阅邮箱）/ 可购买（纯表单 POST 发起 Creem Checkout）/ 支付通道未配置
 // 无客户端 JS：购买通过 <form method="POST" action="/api/creem/checkout"> 原生提交
+// 配色注意：项目 pins twind@0.16.19（Tailwind 2 调色板，无 rose/amber），统一使用 pink/red/green/yellow/gray
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
 import { creemConfigured, getPremiumStatus } from "../lib/creem.ts";
@@ -47,22 +48,22 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
   const isPremium = !!entitlement && ACTIVE_STATUSES.has(entitlement.status);
 
   return (
-    <div class="min-h-screen bg-gradient-to-b from-pink-50 to-rose-100 px-4 py-12">
+    <div class="min-h-screen bg-gray-100 px-4 py-12">
       <div class="mx-auto max-w-xl">
-        <h1 class="text-center text-3xl font-bold text-rose-700">
+        <h1 class="text-center text-3xl font-bold text-pink-700">
           情侣飞行棋 Premium
         </h1>
-        <p class="mt-2 text-center text-sm text-rose-500">
+        <p class="mt-2 text-center text-sm text-pink-600">
           解锁全部会员功能，让两个人的游戏时光更有仪式感
         </p>
 
         {success && (
-          <div class="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div class="mt-6 rounded-lg border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-700">
             🎉 支付流程已完成！会员权益通常在几秒内自动开通，刷新本页即可看到。
           </div>
         )}
         {error && (
-          <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div class="mt-6 rounded-lg border border-red-200 bg-red-100 px-4 py-3 text-sm text-red-700">
             发起支付失败：{error}
           </div>
         )}
@@ -81,7 +82,7 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
             </p>
             <a
               href="/"
-              class="mt-6 inline-block rounded-full bg-rose-500 px-8 py-3 text-white hover:bg-rose-600"
+              class="mt-6 inline-block rounded-full bg-pink-500 px-8 py-3 text-white hover:bg-pink-600"
             >
               返回首页开玩
             </a>
@@ -89,7 +90,7 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
         ) : (
           <div class="mt-8 rounded-2xl bg-white p-8 shadow-lg">
             <div class="text-center">
-              <div class="text-4xl font-bold text-rose-600">$4.99</div>
+              <div class="text-4xl font-bold text-pink-600">$4.99</div>
               <div class="mt-1 text-xs text-gray-400">
                 每月，自动续订，随时可取消
               </div>
@@ -103,20 +104,20 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
               <form method="POST" action="/api/creem/checkout" class="mt-8">
                 <button
                   type="submit"
-                  class="w-full rounded-full bg-rose-500 px-6 py-3 text-lg font-semibold text-white shadow hover:bg-rose-600"
+                  class="w-full rounded-full bg-pink-500 px-6 py-3 text-lg font-semibold text-white shadow hover:bg-pink-600"
                 >
                   {username ? "立即开通 Premium" : "登录后开通"}
                 </button>
               </form>
             ) : (
-              <p class="mt-8 rounded-lg bg-amber-50 px-4 py-3 text-center text-sm text-amber-700">
+              <p class="mt-8 rounded-lg bg-yellow-100 px-4 py-3 text-center text-sm text-yellow-700">
                 支付通道暂未配置，请稍后再试。
               </p>
             )}
             {!username && (
               <p class="mt-4 text-center text-xs text-gray-400">
                 需要登录后才能发起支付，
-                <a href="/login" class="text-rose-500 underline">去登录</a>
+                <a href="/login" class="text-pink-600 underline">去登录</a>
               </p>
             )}
           </div>
