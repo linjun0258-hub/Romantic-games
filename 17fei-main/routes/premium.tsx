@@ -8,6 +8,7 @@ import { Handlers, PageProps } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
 import { creemConfigured, getPremiumStatus } from "../lib/creem.ts";
 import type { Entitlement } from "../lib/creem.ts";
+import Footer from "../components/Footer.tsx";
 
 interface PremiumPageData {
   username: string | null;
@@ -37,14 +38,17 @@ async function verifyRedirectSignature(
 ): Promise<boolean> {
   const signature = params.get("signature");
   if (!signature || !apiKey) return false;
+
   const entries: Array<[string, string]> = [];
   for (const key of REDIRECT_PARAM_KEYS) {
     const value = params.get(key);
     if (value !== null) entries.push([key, value]);
   }
   if (entries.length === 0) return false;
+
   entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   const payload = entries.map(([k, v]) => `${k}=${v}`).join("&");
+
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(apiKey),
@@ -60,6 +64,7 @@ async function verifyRedirectSignature(
   const expected = Array.from(new Uint8Array(mac))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+
   // 常量时间比较，防时序攻击
   if (expected.length !== signature.length) return false;
   let diff = 0;
@@ -136,9 +141,7 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
 
         {success && (
           <div class="mt-6 rounded-lg border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-700">
-            🎉 支付流程已完成（Creem 回跳签名已验证{verifiedOrderId
-              ? `，订单 ${verifiedOrderId}`
-              : ""}）！会员权益通常在几秒内由 Webhook 自动开通，刷新本页即可看到。
+            🎉 支付流程已完成（Creem 回跳签名已验证{verifiedOrderId ? `，订单 ${verifiedOrderId}` : ""}）！会员权益通常在几秒内由 Webhook 自动开通，刷新本页即可看到。
           </div>
         )}
         {invalidSignature && (
@@ -179,11 +182,13 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
                 每月，自动续订，随时可取消
               </div>
             </div>
+
             <ul class="mt-6 space-y-2 text-sm text-gray-600">
               <li>✨ 解锁全部主题棋盘与事件卡</li>
               <li>♾️ 无限房间与好友对战</li>
               <li>💌 专属情侣任务与纪念日提醒</li>
             </ul>
+
             {configured ? (
               <form method="POST" action="/api/creem/checkout" class="mt-8">
                 <button
@@ -198,6 +203,7 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
                 支付通道暂未配置，请稍后再试。
               </p>
             )}
+
             {!username && (
               <p class="mt-4 text-center text-xs text-gray-400">
                 需要登录后才能发起支付，
@@ -208,8 +214,13 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
         )}
 
         <p class="mt-6 text-center text-xs text-gray-400">
-          支付由 Creem 安全处理（当前为测试模式，不会产生真实扣款）。
+          支付由 Creem 安全处理（当前为测试模式，不会产生真实扣款）。点击支付即表示同意
+          <a href="/terms" class="underline"> 服务条款 </a>与
+          <a href="/privacy" class="underline"> 隐私政策 </a>，问题请联系
+          <a href="mailto:linjun0258@gmail.com" class="underline"> linjun0258@gmail.com </a>。
         </p>
+
+        <Footer />
       </div>
     </div>
   );
