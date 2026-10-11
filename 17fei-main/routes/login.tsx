@@ -55,9 +55,9 @@ export const handler: Handlers<LoginData> = {
       return ctx.render({ error: "密码错误" }, { status: 400 });
     }
 
-    // 登录成功，签发会话 Cookie 并跳转首页
+    // 登录成功，签发会话 Cookie 并跳转独立大厅
     const token = createSessionToken(username);
-    const headers = new Headers({ Location: "/" });
+    const headers = new Headers({ Location: "/hall" });
     headers.append("Set-Cookie", sessionCookie(token));
     return new Response(null, { status: 303, headers });
   },
