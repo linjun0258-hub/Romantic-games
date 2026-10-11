@@ -1,5 +1,6 @@
 {
   "lock": false,
+  "vendor": true,
   "tasks": {
     "check": "deno fmt --check main.ts dev.ts fresh.config.ts fresh.gen.ts twind.config.ts routes components islands lib && deno lint main.ts dev.ts fresh.config.ts fresh.gen.ts twind.config.ts routes components islands lib && deno check **/*.ts **/*.tsx",
     "start": "deno run --unstable -A --watch=static/,routes/ dev.ts",
