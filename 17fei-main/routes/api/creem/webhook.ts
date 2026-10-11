@@ -2,7 +2,7 @@
 // 验证 creem-signature 头（HMAC-SHA256(rawBody, CREEM_WEBHOOK_SECRET) 的小写 hex）
 // 幂等：按事件 ID 去重（creem_webhook_events 表），重复投递直接返回 200
 // 授权事件：checkout.completed / subscription.active / subscription.paid / subscription.trialing
-// 撤权事件：subscription.canceled / subscription.expired / subscription.paused
+// 撤权事件：subscription.canceled / subscription.expired / subscription.paused / refund.created
 // 其余事件（past_due / update 等）仅记录不改变权益
 import { Handlers } from "$fresh/server.ts";
 import {
@@ -23,6 +23,7 @@ const REVOKE_EVENTS = new Set([
   "subscription.canceled",
   "subscription.expired",
   "subscription.paused",
+  "refund.created",
 ]);
 
 interface CreemEventObject {
@@ -42,6 +43,7 @@ export const handler: Handlers = {
   async POST(req) {
     const rawBody = await req.text();
     const signature = req.headers.get("creem-signature");
+
     const valid = await verifyWebhookSignature(rawBody, signature);
     if (!valid) {
       return new Response("Invalid signature", { status: 401 });
@@ -69,10 +71,13 @@ export const handler: Handlers = {
 
     // 解析站内用户名与订阅信息（checkout 与 subscription 事件都携带 metadata）
     const meta = obj.metadata ?? {};
-    const username = typeof meta.referenceId === "string" ? meta.referenceId : "";
-    const customerEmail = obj.customer?.email ?? obj.subscription?.customer?.email ??
-      null;
-    const subscriptionId = typeof obj.id === "string" && obj.id.startsWith("sub_")
+    const username = typeof meta.referenceId === "string"
+      ? meta.referenceId
+      : "";
+    const customerEmail = obj.customer?.email ??
+      obj.subscription?.customer?.email ?? null;
+    const subscriptionId = typeof obj.id === "string" &&
+        obj.id.startsWith("sub_")
       ? obj.id
       : obj.subscription?.id ?? null;
 
