@@ -31,6 +31,9 @@ import * as $26 from "./routes/unopen.tsx";
 import * as $27 from "./routes/verify.ts";
 import * as $28 from "./routes/privacy.tsx";
 import * as $29 from "./routes/terms.tsx";
+import * as $30 from "./routes/api/game-access.ts";
+import * as $31 from "./routes/fxq.tsx";
+import * as $32 from "./routes/hall.tsx";
 import * as $$0 from "./islands/position-list.tsx";
 import type { Manifest } from "$fresh/server.ts";
 const manifest = {
@@ -48,10 +51,13 @@ const manifest = {
     "./routes/api/creem/checkout.ts": $10,
     "./routes/api/creem/webhook.ts": $11,
     "./routes/api/send-remind.ts": $12,
+    "./routes/api/game-access.ts": $30,
     "./routes/card.tsx": $13,
     "./routes/card_version.tsx": $14,
     "./routes/custom.tsx": $15,
+    "./routes/fxq.tsx": $31,
     "./routes/greet/[name].tsx": $16,
+    "./routes/hall.tsx": $32,
     "./routes/index.tsx": $17,
     "./routes/join.tsx": $18,
     "./routes/login.tsx": $19,
@@ -60,11 +66,11 @@ const manifest = {
     "./routes/position.tsx": $22,
     "./routes/positions.tsx": $23,
     "./routes/premium.tsx": $24,
+    "./routes/privacy.tsx": $28,
     "./routes/register.tsx": $25,
+    "./routes/terms.tsx": $29,
     "./routes/unopen.tsx": $26,
     "./routes/verify.ts": $27,
-    "./routes/privacy.tsx": $28,
-    "./routes/terms.tsx": $29,
   },
   islands: {
     "./islands/position-list.tsx": $$0,
