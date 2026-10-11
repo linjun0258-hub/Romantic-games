@@ -1,6 +1,6 @@
 {
   "installCommand": "mkdir -p /vercel/.deno/bin && curl -fsSL https://github.com/denoland/deno/releases/download/v2.4.1/deno-x86_64-unknown-linux-gnu.zip -o /tmp/deno.zip && (unzip -o /tmp/deno.zip -d /vercel/.deno/bin || python3 -m zipfile -e /tmp/deno.zip /vercel/.deno/bin)",
-  "buildCommand": "export PATH=\"/vercel/.deno/bin:$PATH\" && DENO_DIR=\"$PWD/.vercel/cache/deno\" deno install --no-prompt --entrypoint api/index.ts && DENO_DIR=\"$PWD/.vercel/cache/deno\" deno install --no-prompt --entrypoint main.ts && DENO_DIR=\"$HOME/.cache/deno\" deno install --no-prompt --entrypoint api/index.ts && DENO_DIR=\"$HOME/.cache/deno\" deno install --no-prompt --entrypoint main.ts",
+  "buildCommand": "DENO_DIR=\"$PWD/.vercel/cache/deno\" /vercel/.deno/bin/deno install --no-prompt --entrypoint api/index.ts --entrypoint main.ts && DENO_DIR=\"$HOME/.cache/deno\" /vercel/.deno/bin/deno install --no-prompt --entrypoint api/index.ts --entrypoint main.ts",
   "functions": {
     "api/index.ts": {
       "runtime": "@lowlighter/vercel-deno@2.9.2"
