@@ -29,9 +29,10 @@ import * as $24 from "./routes/premium.tsx";
 import * as $25 from "./routes/register.tsx";
 import * as $26 from "./routes/unopen.tsx";
 import * as $27 from "./routes/verify.ts";
+import * as $28 from "./routes/privacy.tsx";
+import * as $29 from "./routes/terms.tsx";
 import * as $$0 from "./islands/position-list.tsx";
 import type { Manifest } from "$fresh/server.ts";
-
 const manifest = {
   routes: {
     "./routes/171717.tsx": $0,
@@ -62,11 +63,12 @@ const manifest = {
     "./routes/register.tsx": $25,
     "./routes/unopen.tsx": $26,
     "./routes/verify.ts": $27,
+    "./routes/privacy.tsx": $28,
+    "./routes/terms.tsx": $29,
   },
   islands: {
     "./islands/position-list.tsx": $$0,
   },
   baseUrl: import.meta.url,
 };
-
 export default manifest;
