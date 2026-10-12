@@ -1,13 +1,15 @@
 // /fxq 路由：飞行棋大厅与门控
-// [deploy] 触发 Vercel 重新部署标记（094dcd9 / fb954cb 未被 Vercel App 捕获）
+// [deploy] 触发 Vercel 重新部署标记
 // 三类身份统一渲染大厅（不再拦截游客 IP），身份与免费额度通过注入脚本控制：
 //   游客        ：可浏览全部版本大厅，进入任何版本 → 遮罩引导注册/登录（不能直接玩）
 //   注册登录非会员：每天分别可体验 1 次基础版(basic) + 1 次恋爱版(love)，
 //                  其余版本（情侣/高级/私密/组合/自定义）进入 → 遮罩引导升级会员
 //   会员        ：lockVip=false，全部版本解锁
-// 棋盘页（hash mode=1..7）兜底：开局时前端 POST /api/fxq/trial 原子计数校验，
-// 已用完 / 需会员 / 未登录 → 全屏遮罩引导。同一会话内已放行的模式用
-// sessionStorage 标记，刷新页面不重复计数、不误锁。
+// 棋盘页（hash mode=1..7）兜底：开局时前端 POST /api/fxq/trial 原子计数校验。
+// 因 uni-app SPA 用 pushState 做路由（不触发 hashchange），门控脚本采用
+// 事件 + 轮询双保险：包装 pushState/replaceState、监听 popstate/hashchange，
+// 并以 800ms 轮询 currentModeId；in-flight 标记防重复调接口；
+// 同一会话内已放行的模式用 sessionStorage 标记，刷新不重复计数。
 import { Handlers } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
 import { isMember } from "../lib/gameAccess.ts";
@@ -55,23 +57,42 @@ function checkStart(modeKey){
     .catch(function(){return{ok:false};});
 }
 
-// 棋盘页兜底：hash 带 mode= 时按身份校验
+var inflight=false;
+var lastId=0;
+
+// 核心校验：进入棋盘页(mode) 时按身份放行或弹遮罩
 function guardBoard(){
   var id=currentModeId();
-  if(!id){removeOverlay();return;}
+  if(!id){ if(lastId!==0){lastId=0;removeOverlay();} return; }
+  if(id!==lastId){ lastId=id; inflight=false; } // 切换模式时重置
+  if(ROLE==="member"){ removeOverlay(); return; }
+  if(ROLE==="guest"){ gateLogin(); return; }
+  // free
   var key=modeKeyById(id);if(!key)return;
-  if(ROLE==="member")return;
-  if(ROLE==="guest"){gateLogin();return;}
-  if(sessionOk(key))return;
+  if(sessionOk(key))return;               // 本会话已放行
+  if(document.getElementById("fxq-gate"))return; // 已有遮罩
+  if(inflight)return;                     // 防止轮询重复调接口
+  inflight=true;
   checkStart(key).then(function(res){
-    if(res&&res.ok){markSessionOk(key);return;}
+    inflight=false;
+    if(currentModeId()!==id)return;        // 已离开棋盘页
+    if(res&&res.ok){markSessionOk(key);removeOverlay();return;}
     if(res&&res.reason==="used")gateUsed(MODE_NAME[key]||"该版本");
     else if(res&&res.reason==="login")gateLogin();
     else gateVip(MODE_NAME[key]||"该版本");
-  });
+  }).catch(function(){inflight=false;});
 }
 
-window.addEventListener("hashchange",guardBoard);
+// 事件 + 轮询双保险：uni-app 用 pushState 路由不触发 hashchange
+try{
+  var _ps=history.pushState, _rs=history.replaceState;
+  function hook(fn){return function(){var r=fn.apply(this,arguments);try{setTimeout(guardBoard,0);}catch(e){}return r;};}
+  history.pushState=hook(_ps);
+  history.replaceState=hook(_rs);
+}catch(e){}
+window.addEventListener("popstate",function(){setTimeout(guardBoard,0);});
+window.addEventListener("hashchange",function(){setTimeout(guardBoard,0);});
+setInterval(guardBoard,800);
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",guardBoard);}else{guardBoard();}
 })();</script>`;
 
