@@ -1,84 +1,103 @@
-// /fxq 路由接管：服务端按身份注入 lockVip 开关
-// - 会员（premium_entitlements.status=active）：lockVip=false，全部棋盘版本解锁
-// - 免费登录用户 / 游客：lockVip=true，仅基础版 + 恋爱版
-// - 游客每日 1 次（后端 IP 计数 + localStorage 双层），用完返回引导页（登录 / 升级会员）
-// 模板来自 lib/fxq_html.ts（由 static/fxq/index.html JSON 内嵌 + __LOCKVIP__ 占位符生成）
+// /fxq 路由：飞行棋大厅与门控
+// 三类身份统一渲染大厅（不再拦截游客 IP），身份与免费额度通过注入脚本控制：
+//   游客        ：可浏览全部版本大厅，点击任何版本 → 遮罩引导注册/登录（不能直接玩）
+//   注册登录非会员：每天分别可体验 1 次基础版(basic) + 1 次恋爱版(love)，
+//                  其余版本（情侣/高级/私密/组合/自定义）点击 → 遮罩引导升级会员
+//   会员        ：lockVip=false，全部版本解锁
+// 棋盘页（hash mode=1..7）兜底：开局时前端 POST /api/fxq/trial 原子计数校验，
+// 已用完 / 需会员 / 未登录 → 全屏遮罩引导。同一会话内已放行的模式用
+// sessionStorage 标记，刷新页面不重复计数、不误锁。
 import { Handlers } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
-import {
-  clientIpFromRequest,
-  getGuestQuota,
-  isMember,
-  recordGuestPlay,
-} from "../lib/gameAccess.ts";
+import { isMember } from "../lib/gameAccess.ts";
 import { FXQ_HTML } from "../lib/fxq_html.ts";
 
-const LOCKED_HTML = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>情侣飞行棋</title>
-<style>
-  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-         background:linear-gradient(180deg,#fdf2f8,#f3e8ff,#fff); font-family:system-ui,sans-serif; }
-  .box { text-align:center; padding:2.5rem 2rem; max-width:24rem; }
-  h1 { font-size:1.5rem; color:#be185d; margin:0 0 .5rem; }
-  p { color:#6b7280; margin:.25rem 0; }
-  .btn { display:inline-block; margin:.5rem .25rem 0; padding:.7rem 1.4rem; border-radius:9999px;
-         font-weight:600; text-decoration:none; }
-  .btn-pink { background:#ec4899; color:#fff; }
-  .btn-ghost { border:1px solid #f9a8d4; color:#db2777; }
-</style>
-</head>
-<body>
-  <div class="box">
-    <div style="font-size:3rem">🎲</div>
-    <h1>今日免费体验已用完</h1>
-    <p>游客每天可体验 1 次飞行棋，明天再来～</p>
-    <p>登录后不限次数畅玩基础版和恋爱版</p>
-    <a class="btn btn-pink" href="/login">登录 / 注册</a>
-    <a class="btn btn-ghost" href="/premium">升级会员解锁全部版本</a>
-  </div>
-</body>
-</html>`;
+// 注入到页面的身份与门控脚本（__ROLE__ 由服务端替换为 guest / free / member）
+const GATE_SCRIPT = `<script>(function(){
+var ROLE="__ROLE__";
+var MODE_MAP={basic:1,love:2,couple:3,adult:4,private:5,combo:6,custom:7};
+var MODE_NAME={basic:"基础版",love:"恋爱版",couple:"情侣版",adult:"高级版",private:"私密版",combo:"组合模式",custom:"自定义"};
 
-// 游客本地双层计数：当日已体验过 → 覆盖锁定遮罩（localStorage 层，弥补出口 IP 变化时的后端 IP 盲区）
-const GUEST_QUOTA_SCRIPT = `<script>(function(){try{var d=new Date(),k="fxq_used_"+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+(d.getDate())).slice(-2);if(localStorage.getItem(k)){var o=document.createElement("div");o.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;background:#fff0f6;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:system-ui,sans-serif";o.innerHTML='<div style="font-size:3rem;margin-bottom:8px">🎲</div><div style="font-size:22px;font-weight:700;color:#be185d;margin-bottom:10px">今日免费体验已用完</div><div style="color:#6b7280;margin-bottom:4px">游客每天可体验 1 次飞行棋，明天再来～</div><div style="color:#6b7280;margin-bottom:20px">登录后不限次数畅玩基础版和恋爱版</div><div><a href="/login" style="display:inline-block;margin:0 4px;padding:.7rem 1.4rem;border-radius:9999px;background:#ec4899;color:#fff;font-weight:600;text-decoration:none">登录 / 注册</a><a href="/premium" style="display:inline-block;margin:0 4px;padding:.7rem 1.4rem;border-radius:9999px;border:1px solid #f9a8d4;color:#db2777;font-weight:600;text-decoration:none">升级会员</a></div>';(document.body||document.documentElement).appendChild(o);}else{localStorage.setItem(k,"1");}}catch(e){}})();</script>`;
+function qs(k){try{var h=location.hash||"";var i=h.indexOf("?");if(i<0)return"";var q=h.slice(i+1);var ps=q.split("&");for(var j=0;j<ps.length;j++){var kv=ps[j].split("=");if(kv[0]===k)return decodeURIComponent(kv[1]||"");}}catch(e){}return"";}
+function currentModeId(){var n=parseInt(qs("mode"),10);return isNaN(n)?0:n;}
+function modeKeyById(id){for(var k in MODE_MAP){if(MODE_MAP[k]===id)return k;}return"";}
+function sessionOk(k){try{return sessionStorage.getItem("fxq_ok_"+k)==="1";}catch(e){return false;}}
+function markSessionOk(k){try{sessionStorage.setItem("fxq_ok_"+k,"1");}catch(e){}}
+
+function removeOverlay(){var o=document.getElementById("fxq-gate");if(o&&o.parentNode)o.parentNode.removeChild(o);}
+function overlay(title,desc,btns){
+  removeOverlay();
+  var o=document.createElement("div");o.id="fxq-gate";
+  o.setAttribute("style","position:fixed;inset:0;z-index:2147483647;background:rgba(17,24,39,.55);display:flex;align-items:center;justify-content:center;padding:24px;");
+  var c=document.createElement("div");
+  c.setAttribute("style","background:#fff;border-radius:16px;max-width:22rem;width:100%;padding:2rem 1.5rem;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:system-ui,sans-serif;");
+  var h="<div style='font-size:2.4rem;line-height:1'>&#x1F3B2;</div>"+
+        "<div style='font-size:1.25rem;font-weight:700;color:#be185d;margin:.6rem 0 .4rem'>"+title+"</div>"+
+        "<div style='color:#6b7280;font-size:.95rem;margin-bottom:1.2rem'>"+desc+"</div>";
+  var b="";
+  for(var i=0;i<btns.length;i++){var x=btns[i];
+    var st=x.primary?("background:#ec4899;color:#fff;"):("border:1px solid #f9a8d4;color:#db2777;background:#fff;");
+    b+="<a href='"+x.href+"' style='display:block;margin:.5rem 0;padding:.75rem 1rem;border-radius:9999px;font-weight:600;text-decoration:none;"+st+"'>"+x.text+"</a>";
+  }
+  c.innerHTML=h+b;
+  o.appendChild(c);
+  (document.body||document.documentElement).appendChild(o);
+}
+function backBtn(){return {href:"#/",text:"返回大厅",primary:0};}
+function gateLogin(){overlay("请先登录","注册 / 登录后，每天可体验基础版和恋爱版各 1 次",[{href:"/login",text:"登录 / 注册",primary:1},{href:"/premium",text:"了解会员",primary:0},backBtn()]);}
+function gateVip(name){overlay("会员专属版本",name+" 为会员专属，升级后解锁全部版本",[{href:"/premium",text:"升级会员解锁",primary:1},backBtn()]);}
+function gateUsed(name){overlay("今日体验已用完",name+" 每天可体验 1 次，明天再来，或升级会员不限次数",[{href:"/premium",text:"升级会员不限次",primary:1},backBtn()]);}
+
+function checkStart(modeKey){
+  return fetch("/api/fxq/trial",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:modeKey})})
+    .then(function(r){return r.json().catch(function(){return{ok:false};});})
+    .catch(function(){return{ok:false};});
+}
+
+// 棋盘页兜底：hash 带 mode= 时按身份校验
+function guardBoard(){
+  var id=currentModeId();
+  if(!id){removeOverlay();return;}
+  var key=modeKeyById(id);if(!key)return;
+  if(ROLE==="member")return;
+  if(ROLE==="guest"){gateLogin();return;}
+  if(sessionOk(key))return; // 本会话已放行，刷新不重复计数
+  checkStart(key).then(function(res){
+    if(res&&res.ok){markSessionOk(key);return;}
+    if(res&&res.reason==="used")gateUsed(MODE_NAME[key]||"该版本");
+    else if(res&&res.reason==="login")gateLogin();
+    else gateVip(MODE_NAME[key]||"该版本");
+  });
+}
+
+window.addEventListener("hashchange",guardBoard);
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",guardBoard);}else{guardBoard();}
+})();</script>`;
 
 export const handler: Handlers = {
   async GET(req) {
     const username = getUsernameFromRequest(req);
     if (username) {
-      // 登录用户：会员全开（locked=false）；免费用户锁定高级版本（基础 + 恋爱可玩）
       const member = await isMember(username);
-      return render(FXQ_HTML, !member);
+      // member: 全部解锁；free: lockVip=true 锁定高级版本展示，基础/恋爱由 /api/fxq/trial 按天计数
+      return render(FXQ_HTML, !member, member ? "member" : "free");
     }
-    // 游客：每日 1 次（后端 IP 计数），用完显示引导页
-    const ip = clientIpFromRequest(req);
-    const quota = await getGuestQuota(ip, "fxq", 1);
-    if (quota.remaining <= 0) {
-      return new Response(LOCKED_HTML, {
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
-    }
-    await recordGuestPlay(ip, "fxq", 1);
-    // 游客与免费用户一致：锁定高级版本，可玩基础版 + 恋爱版；附带 localStorage 双层计数脚本
-    return render(FXQ_HTML, true, GUEST_QUOTA_SCRIPT);
+    // 游客：可浏览全部版本大厅，点击即遮罩引导登录；lockVip=true 保持高级版本锁定展示
+    return render(FXQ_HTML, true, "guest");
   },
 };
 
-function render(template: string, locked: boolean, extraScript = ""): Response {
+function render(template: string, locked: boolean, role: string): Response {
+  const gateScript = GATE_SCRIPT.replace(/__ROLE__/g, role);
   const body = template
     // 按身份改写 lockVip 开关（游戏加载前读取）
     .replace("__LOCKVIP__", locked ? "true" : "false")
-    // 文档基准修正：页面挂在 /fxq（无尾斜杠、基准为 /），bundle 内相对 publicPath 的懒加载页面 chunk
-    // 会被请求到 /static/js/pages-*.js（404→白屏）；注入 <base> 后解析到 /fxq/static/js/（与原站 /fxq/index.html 一致）
+    // 文档基准修正：页面挂在 /fxq，bundle 懒加载 chunk 需相对 /fxq/static/
     .replace("<head>", '<head><base href="/fxq/">')
-    // 静态资源相对路径 ./static/ → /fxq/static/（src 属性为无引号写法，兼容引号形式）
+    // 静态资源相对路径 ./static/ → /fxq/static/
     .replace(/=(["']?)\.\/static\//g, "=$1/fxq/static/")
-    // 游客 localStorage 双层计数脚本注入到 #app 之后（body 已存在，遮罩可立即挂载）
-    .replace("<div id=app></div>", "<div id=app></div>" + extraScript);
+    // 身份门控脚本注入到 #app 之后（body 已存在，遮罩可立即挂载）
+    .replace("<div id=app></div>", "<div id=app></div>" + gateScript);
   return new Response(body, {
     headers: {
       "content-type": "text/html; charset=utf-8",
