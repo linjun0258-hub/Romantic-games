@@ -1,5 +1,7 @@
-// 注册登录（非会员）用户一次性体验计数模块（按用户名 + surface 去重，不随天重置）
-// 表：user_fxq_trials(username VARCHAR(64), surface VARCHAR(32), used INT DEFAULT 0, PRIMARY KEY(username, surface))
+// 注册登录（非会员）用户每日免费体验计数模块
+// 规则：每个注册用户每天分别可体验 1 次基础版(basic) + 1 次恋爱版(love)
+// 按 (day, username, mode) 原子计数，跨天自动重置
+// 表：user_fxq_daily_trials(day DATE, username VARCHAR(64), mode VARCHAR(16), used INT, PRIMARY KEY(day, username, mode))
 import { neon } from "https://esm.sh/@neondatabase/serverless@1.0.0";
 
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
@@ -7,41 +9,54 @@ const sql = neon(DATABASE_URL ?? "postgres://invalid");
 
 let initialized = false;
 
-async function ensureUserFxqTrialsTable() {
+async function ensureDailyTrialsTable() {
   if (initialized) return;
   await sql`
-    CREATE TABLE IF NOT EXISTS user_fxq_trials (
+    CREATE TABLE IF NOT EXISTS user_fxq_daily_trials (
+      day DATE NOT NULL,
       username VARCHAR(64) NOT NULL,
-      surface VARCHAR(32) NOT NULL,
+      mode VARCHAR(16) NOT NULL,
       used INT NOT NULL DEFAULT 0,
-      PRIMARY KEY (username, surface)
+      PRIMARY KEY (day, username, mode)
     )
   `;
   initialized = true;
 }
 
-export interface UserTrialQuota {
-  role: "user";
-  remaining: number;
-  used: number;
-  limit: number;
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
-export async function getUserTrialQuota(username: string, surface: string, limit: number): Promise<UserTrialQuota> {
-  await ensureUserFxqTrialsTable();
+// 原子记录当天该模式的首次体验。
+// 返回 true  表示这是今日首次体验，放行；
+// 返回 false 表示今日该模式已体验过，应引导"明天再来 / 升级会员"。
+export async function tryRecordUserDailyTrial(
+  username: string,
+  mode: string,
+): Promise<boolean> {
+  await ensureDailyTrialsTable();
   const rows = await sql`
-    SELECT used FROM user_fxq_trials
-    WHERE username = ${username} AND surface = ${surface}
+    INSERT INTO user_fxq_daily_trials (day, username, mode, used)
+    VALUES (${today()}, ${username}, ${mode}, 1)
+    ON CONFLICT (day, username, mode) DO NOTHING
+    RETURNING used
   `;
-  const used = (rows[0]?.used as number | undefined) ?? 0;
-  return { role: "user" as const, remaining: Math.max(0, limit - used), used, limit };
+  return rows.length > 0;
 }
 
-export async function recordUserTrialPlay(username: string, surface: string): Promise<void> {
-  await ensureUserFxqTrialsTable();
-  await sql`
-    INSERT INTO user_fxq_trials (username, surface, used)
-    VALUES (${username}, ${surface}, 1)
-    ON CONFLICT (username, surface) DO UPDATE SET used = user_fxq_trials.used + 1
+// 查询某用户今天各模式是否已体验（可选，用于状态展示）
+export async function getUserDailyTrialStatus(
+  username: string,
+): Promise<Record<string, boolean>> {
+  await ensureDailyTrialsTable();
+  const rows = await sql`
+    SELECT mode FROM user_fxq_daily_trials
+    WHERE day = ${today()} AND username = ${username}
   `;
+  const status: Record<string, boolean> = { basic: false, love: false };
+  for (const row of rows) {
+    const m = (row as { mode?: string }).mode;
+    if (m) status[m] = true;
+  }
+  return status;
 }
