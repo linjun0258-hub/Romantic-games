@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /hall
+Disallow: /member
+Disallow: /custom
+Disallow: /verify
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://couples-game.website/sitemap.xml
