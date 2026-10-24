@@ -6,7 +6,8 @@
 // （HMAC-SHA256，密钥为 CREEM_API_KEY，对排序后的非空 Creem 参数做 k=v& 拼接），验签通过才展示成功横幅
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
-import { creemConfigured, getPremiumStatus } from "../lib/creem.ts";
+import { getPremiumStatus } from "../lib/creem.ts";
+import { paymentsConfigured } from "../lib/payments.ts";
 import type { Entitlement } from "../lib/creem.ts";
 import Footer from "../components/Footer.tsx";
 
@@ -107,7 +108,7 @@ export const handler: Handlers<PremiumPageData> = {
     const data: PremiumPageData = {
       username,
       entitlement,
-      configured: creemConfigured(),
+      configured: paymentsConfigured(),
       error: url.searchParams.get("error"),
       success: url.searchParams.get("success") === "1" && verified,
       verifiedOrderId,
@@ -185,8 +186,8 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
 
             <ul class="mt-6 space-y-2 text-sm text-gray-600">
               <li>✨ 解锁全部主题棋盘与事件卡</li>
-              <li>♾️ 无限房间与好友对战</li>
-              <li>💌 专属情侣任务与纪念日提醒</li>
+              <li>📖 会员专享：姿势大全完整图鉴</li>
+              <li>🔄 会员内容持续更新，新版本优先体验</li>
             </ul>
 
             {configured ? (
@@ -214,7 +215,7 @@ export default function PremiumPage({ data }: PageProps<PremiumPageData>) {
         )}
 
         <p class="mt-6 text-center text-xs text-gray-400">
-          支付由 Creem 安全处理（当前为测试模式，不会产生真实扣款）。点击支付即表示同意
+          支付由 Dodo Payments 安全处理（作为商户记录方 Merchant of Record 完成收款）。点击支付即表示同意
           <a href="/terms" class="underline"> 服务条款 </a>与
           <a href="/privacy" class="underline"> 隐私政策 </a>，问题请联系
           <a href="mailto:linjun0258@gmail.com" class="underline"> linjun0258@gmail.com </a>。
