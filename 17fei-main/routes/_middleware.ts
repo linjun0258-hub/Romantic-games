@@ -7,6 +7,9 @@ const PUBLIC_EXACT = [
   "/",
   "/login",
   "/register",
+  // SEO 基础文件：必须公开，否则会被本中间件弹回 /login，爬虫与审核方都抓不到
+  "/robots.txt",
+  "/sitemap.xml",
   // 定价页自身公开（未登录用户可见"登录后开通"提示）
   "/premium",
   "/privacy",
@@ -73,7 +76,13 @@ export async function handler(
       // 未登录：重定向到登录页
       return new Response(null, {
         status: 302,
-        headers: { Location: "/login" },
+        headers: {
+          Location: "/login",
+          // 这条重定向绝不能进任何缓存层
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          "CDN-Cache-Control": "no-store",
+          "Vercel-CDN-Cache-Control": "no-store",
+        },
       });
     }
   }
@@ -83,6 +92,13 @@ export async function handler(
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // 防缓存投毒：HTML 页面一律不缓存，确保游客与登录用户各自拿到正确响应
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("text/html")) {
+    headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    headers.set("CDN-Cache-Control", "no-store");
+    headers.set("Vercel-CDN-Cache-Control", "no-store");
+  }
   return new Response(response.body, {
     headers,
     status: response.status,
