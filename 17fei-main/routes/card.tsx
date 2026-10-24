@@ -9,7 +9,7 @@ export default function Card() {
         <script src="/js/howler.min.js"></script>
         <script src="/tasks.js"></script>
         <script src="/card.js"></script>
-        <title>情趣任务卡牌游戏</title>
+        <title>情侣任务卡牌游戏</title>
       </Head>
       <div class="w-full leading-8 min-h-screen text-shadow bg-pink-400 text-lg text-red-100">
         <div class="max-w-screen-md mx-auto ">
