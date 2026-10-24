@@ -68,9 +68,31 @@ export async function handler(
     });
   }
 
+  // 需要登录才能访问的路由白名单（与 routes/ 下真实文件一一对应）
+  // 只有命中这里的路径才会被 302 到 /login；其余未知路径放行给 Fresh，
+  // 由 _404.tsx 返回真正的 404 —— 否则不存在的 URL 会伪装成登录页，
+  // 既污染搜索引擎索引，也让用户无法判断是链接错误还是未登录。
+  const PROTECTED_EXACT = [
+    "/hall",
+    "/member",
+    "/custom",
+    "/verify",
+    "/join",
+    "/card_version",
+    "/positions",
+    "/ai",
+    "/aiok",
+    "/unopen",
+    "/171717",
+  ];
+
   const isPublic = PUBLIC_EXACT.includes(pathname) ||
     PUBLIC_PREFIX.some((p) => pathname === p || pathname.startsWith(p + "/"));
-  if (!isPublic) {
+  const isProtected = PROTECTED_EXACT.includes(pathname) ||
+    pathname.startsWith("/greet/");
+
+  // 公开路径直接放行；未知路径同样放行（交给 _404.tsx 出 404）
+  if (!isPublic && isProtected) {
     const username = getUsernameFromRequest(request);
     if (!username) {
       // 未登录：重定向到登录页
