@@ -8,9 +8,9 @@ export default function App({ Component }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
           name="description"
-          content="情侣情趣飞行棋是一款包含不同尺度适合不同阶段情侣一起玩的情趣游戏"
+          content="情侣飞行棋在线玩：支持双人同屏的情侣互动小游戏，包含基础版与恋爱版棋盘，适合不同阶段的情侣一起玩。"
         />
-        <title>情侣飞行棋 - 情趣私密的情侣小游戏</title>
+        <title>情侣飞行棋 - 情侣互动小游戏</title>
       </head>
       <body>
         <Component />
