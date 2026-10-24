@@ -29,7 +29,7 @@ export default function Privacy() {
           <ul class="list-disc pl-6 mt-2">
             <li>账号信息：注册时提供的邮箱地址与用户名，用于创建和识别你的账号。</li>
             <li>游戏数据：房间与对局记录、任务完成状态等，用于双人同步游戏进度。</li>
-            <li>支付信息：付款由第三方支付服务商 Creem 处理。本站不收集或存储你的银行卡号等支付凭据，仅接收 Creem 回传的订单号、订阅状态与订阅邮箱等必要信息，用于开通和管理会员权益。</li>
+            <li>支付信息：付款由第三方支付服务商（Dodo Payments 或 Creem）处理。本站不收集或存储你的银行卡号等支付凭据，仅接收支付服务商回传的订单号、订阅状态与订阅邮箱等必要信息，用于开通和管理会员权益。</li>
             <li>安全验证信息：本站使用 Cloudflare Turnstile 进行人机验证，相关数据由 Cloudflare 按其隐私政策处理。</li>
           </ul>
 
@@ -45,7 +45,7 @@ export default function Privacy() {
 
           <h2 class="text-xl font-bold mt-8">四、第三方服务</h2>
           <ul class="list-disc pl-6 mt-2">
-            <li>Creem：付款、订阅管理与退款由 Creem 作为商户记录方（Merchant of Record）处理，其数据处理受 Creem 隐私政策约束。</li>
+            <li>Dodo Payments / Creem：付款、订阅管理与退款由支付服务商作为商户记录方（Merchant of Record）处理，其数据处理受相应服务商的隐私政策约束。</li>
             <li>Cloudflare：Turnstile 人机验证。</li>
           </ul>
 
