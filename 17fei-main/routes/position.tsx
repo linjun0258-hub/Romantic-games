@@ -123,7 +123,7 @@ export default function Card() {
         <script
           dangerouslySetInnerHTML={{ __html: GATE_JS }}
         />
-        <title>情趣姿势卡牌游戏</title>
+        <title>情侣姿势卡牌游戏</title>
       </Head>
       <div class="w-full leading-8 min-h-screen text-shadow bg-pink-400 text-lg text-red-100">
         <div class="max-w-screen-md mx-auto ">
