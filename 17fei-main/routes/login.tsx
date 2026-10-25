@@ -112,7 +112,7 @@ export default function Login({ data }: PageProps<LoginData>) {
                 href="/forgot"
                 class="text-sm text-blue-500 hover:underline"
               >
-                忘记密码？
+                忘记密码 / 用户名？
               </a>
             </div>
             <input
