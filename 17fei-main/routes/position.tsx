@@ -48,7 +48,7 @@ const GATE_JS = `
     var el = document.getElementById("gate-tip");
     if (!el) return;
     if (state.role === "member") {
-      el.textContent = "会员畅玩全部 100 个姿势";
+      el.textContent = "全部 100 个姿势免费畅玩，不限次数";
     } else if (state.role === "free") {
       el.textContent = "免费版可抽前 20 个姿势，升级会员解锁全部 100 个";
     } else if (state.remaining > 0) {
