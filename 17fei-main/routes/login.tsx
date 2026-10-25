@@ -13,6 +13,8 @@ import {
 interface LoginData {
   error?: string;
   turnstileSiteKey?: string;
+  // 重置密码成功后跳回本页带 ?reset=1，展示成功提示
+  resetSuccess?: boolean;
 }
 
 const turnstileEnabled = () => Boolean(Deno.env.get("TURNSTILE_SECRET_KEY"));
@@ -23,6 +25,7 @@ export const handler: Handlers<LoginData> = {
     return ctx.render({
       // OAuth 回调等流程失败时通过 ？error= 带回提示
       error: url.searchParams.get("error") ?? undefined,
+      resetSuccess: url.searchParams.get("reset") === "1",
       turnstileSiteKey: turnstileEnabled()
         ? Deno.env.get("TURNSTILE_SITE_KEY")
         : undefined,
@@ -77,6 +80,11 @@ export default function Login({ data }: PageProps<LoginData>) {
       )}
       <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 class="text-2xl font-bold mb-6 text-center">登录</h1>
+        {data?.resetSuccess && !data?.error && (
+          <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            密码已重置，请用新密码登录
+          </div>
+        )}
         {data?.error && (
           <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {data.error}
@@ -96,9 +104,17 @@ export default function Login({ data }: PageProps<LoginData>) {
             />
           </div>
           <div class="mb-4">
-            <label class="block text-gray-700 mb-2" htmlFor="password">
-              密码
-            </label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-gray-700" htmlFor="password">
+                密码
+              </label>
+              <a
+                href="/forgot"
+                class="text-sm text-blue-500 hover:underline"
+              >
+                忘记密码？
+              </a>
+            </div>
             <input
               id="password"
               name="password"
