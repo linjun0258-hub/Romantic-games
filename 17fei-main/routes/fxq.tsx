@@ -137,7 +137,7 @@ function render(template: string, locked: boolean, role: string): Response {
     // 按身份改写 lockVip 开关（游戏加载前读取）
     .replace("__LOCKVIP__", locked ? "true" : "false")
     // 文档基准修正：页面挂在 /fxq，bundle 懒加载 chunk 需相对 /fxq/static/
-    .replace("<head>", '<head><base href="/fxq/">')
+    .replace("<head>", '<head><base href="/fxq/"><meta name="description" content="在线情侣飞行棋，支持基础版、恋爱版、情侣版、高级版、私密版与自定义模式，掷骰子触发甜蜜任务卡，手机电脑都能双人同玩，全部版本免费。"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="https://couples-game.website/fxq"><meta property="og:title" content="情侣飞行棋在线玩 - 双人互动棋盘游戏（全部免费）"><meta property="og:type" content="website"><meta property="og:url" content="https://couples-game.website/fxq"><meta property="og:image" content="https://couples-game.website/kiss-banana.png"><meta name="twitter:card" content="summary_large_image">')
     // 静态资源相对路径 ./static/ → /fxq/static/
     .replace(/=(["']?)\.\/static\//g, "=$1/fxq/static/")
     // 身份门控脚本注入到 #app 之后（body 已存在，遮罩可立即挂载）
