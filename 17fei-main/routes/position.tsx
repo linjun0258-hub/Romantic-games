@@ -1,4 +1,4 @@
-// 姿势卡牌页：原版纯静态抽卡页 + 游戏门槛（游客 3 抽/天，免费用户限前 20 个姿势，会员全开 100 个）
+// 姿势卡牌页：原版纯静态抽卡页 + 游戏门槛（全站免费：所有身份均可畅玩 100 个姿势，不限次数）
 // 门槛逻辑内联在页面里，通过 /api/game-access 判定档位，无需改 positions.js 的抽卡实现
 import { Head } from "$fresh/runtime.ts";
 
@@ -48,11 +48,11 @@ const GATE_JS = `
     var el = document.getElementById("gate-tip");
     if (!el) return;
     if (state.role === "member") {
-      el.textContent = "会员畅玩全部 100 个姿势";
+      el.textContent = "全部 100 个姿势免费畅玩，不限次数";
     } else if (state.role === "free") {
-      el.textContent = "免费版可抽前 20 个姿势，升级会员解锁全部 100 个";
+      el.textContent = "全部 100 个姿势免费，不限抽取次数";
     } else if (state.remaining > 0) {
-      el.textContent = "游客今日剩余 " + state.remaining + " 次，登录后不限次数";
+      el.textContent = "今日剩余 " + state.remaining + " 次，登录后不限次数";
     } else {
       el.textContent = "游客今日 3 次机会已用完";
     }
@@ -67,14 +67,14 @@ const GATE_JS = `
     overlay.innerHTML =
       '<div style="font-size:2.5rem;margin-bottom:12px">💗</div>' +
       '<div style="font-size:1.25rem;font-weight:700;margin-bottom:8px">今日免费抽取已用完</div>' +
-      '<div style="opacity:.9;margin-bottom:20px">登录后不限次数抽卡，升级会员解锁全部姿势</div>' +
+      '<div style="opacity:.9;margin-bottom:20px">登录后即可不限次数抽卡，全部姿势免费</div>' +
       '<div>' +
       '<a href="/login" style="display:inline-block;margin:4px;padding:10px 22px;border-radius:999px;background:#fff;color:#db2777;font-weight:700;text-decoration:none">登录 / 注册</a>' +
-      '<a href="/premium" style="display:inline-block;margin:4px;padding:10px 22px;border-radius:999px;background:#be185d;color:#fff;font-weight:700;text-decoration:none">升级会员</a>' +
+      '<a href="/premium" style="display:inline-block;margin:4px;padding:10px 22px;border-radius:999px;background:#be185d;color:#fff;font-weight:700;text-decoration:none">查看免费说明</a>' +
       '</div>';
     document.body.appendChild(overlay);
     var tip = document.getElementById("gate-tip");
-    if (tip) tip.textContent = "今日免费次数已用完，登录或升级会员后继续";
+    if (tip) tip.textContent = "今日次数已用完，登录后即可继续";
     try {
       // 硬断原抽卡监听（positions.js 通过 jQuery 注册）
       if (window.jQuery) window.jQuery("#card").off("change");
