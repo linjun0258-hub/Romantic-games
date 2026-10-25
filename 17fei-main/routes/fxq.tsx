@@ -124,12 +124,28 @@ export const handler: Handlers = {
     if (username) {
       const member = await isMember(username);
       // member: 全部解锁；free: lockVip=true 锁定高级版本展示，基础/恋爱由 /api/fxq/trial 按天计数
-      return render(FXQ_HTML, false, "member");
+      return render(FXQ_HTML, !member, member ? "member" : "free");
     }
     // 游客：可浏览全部版本大厅，进入即遮罩引导登录；lockVip=true 保持高级版本锁定展示
-    return render(FXQ_HTML, false, "member");
+    return render(FXQ_HTML, true, "guest");
   },
 };
+
+const FXQ_JSONLD = '<script type="application/ld+json">' + JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://couples-game.website/fxq#webpage",
+  "url": "https://couples-game.website/fxq",
+  "name": "\u60c5\u4fa3\u98de\u884c\u68cb - \u60c5\u4fa3\u4e92\u52a8\u5c0f\u6e38\u620f",
+  "description": "\u514d\u8d39\u5728\u7ebf\u60c5\u4fa3\u98de\u884c\u68cb\uff0c\u652f\u6301\u57fa\u7840\u7248\u3001\u604b\u7231\u7248\u4e0e\u9ad8\u7ea7\u7248\u591a\u79cd\u6a21\u5f0f\uff0c\u53cc\u4eba\u5c40\u57df\u7f51\u7ecf\u5373\u53ef\u5f00\u73a9\uff0c\u5168\u90e8\u529f\u80fd\u514d\u8d39\u3002",
+  "inLanguage": "zh-CN",
+  "isPartOf": { "@type": "WebSite", "@id": "https://couples-game.website/#website", "name": "\u60c5\u4fa3\u98de\u884c\u68cb", "url": "https://couples-game.website/" },
+  "about": { "@type": "VideoGame", "name": "\u60c5\u4fa3\u98de\u884c\u68cb", "applicationCategory": "Game", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" } },
+  "breadcrumb": { "@type": "BreadcrumbList", "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "\u9996\u9875", "item": "https://couples-game.website/" },
+    { "@type": "ListItem", "position": 2, "name": "\u60c5\u4fa3\u98de\u884c\u68cb", "item": "https://couples-game.website/fxq" }
+  ] }
+}) + '</script>';
 
 function render(template: string, locked: boolean, role: string): Response {
   const gateScript = GATE_SCRIPT.replace(/__ROLE__/g, role);
@@ -137,7 +153,7 @@ function render(template: string, locked: boolean, role: string): Response {
     // 按身份改写 lockVip 开关（游戏加载前读取）
     .replace("__LOCKVIP__", locked ? "true" : "false")
     // 文档基准修正：页面挂在 /fxq，bundle 懒加载 chunk 需相对 /fxq/static/
-    .replace("<head>", '<head><base href="/fxq/"><meta name="description" content="在线情侣飞行棋，支持基础版、恋爱版、情侣版、高级版、私密版与自定义模式，掷骰子触发甜蜜任务卡，手机电脑都能双人同玩，全部版本免费。"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="https://couples-game.website/fxq"><meta property="og:title" content="情侣飞行棋在线玩 - 双人互动棋盘游戏（全部免费）"><meta property="og:type" content="website"><meta property="og:url" content="https://couples-game.website/fxq"><meta property="og:image" content="https://couples-game.website/kiss-banana.png"><meta name="twitter:card" content="summary_large_image">')
+    .replace("<head>", '<head><base href="/fxq/">' + FXQ_JSONLD)
     // 静态资源相对路径 ./static/ → /fxq/static/
     .replace(/=(["']?)\.\/static\//g, "=$1/fxq/static/")
     // 身份门控脚本注入到 #app 之后（body 已存在，遮罩可立即挂载）
