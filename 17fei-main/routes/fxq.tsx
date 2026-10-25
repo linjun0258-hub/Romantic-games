@@ -137,7 +137,7 @@ const FXQ_JSONLD = '<script type="application/ld+json">' + JSON.stringify({
   "@id": "https://couples-game.website/fxq#webpage",
   "url": "https://couples-game.website/fxq",
   "name": "\u60c5\u4fa3\u98de\u884c\u68cb - \u60c5\u4fa3\u4e92\u52a8\u5c0f\u6e38\u620f",
-  "description": "\u514d\u8d39\u5728\u7ebf\u60c5\u4fa3\u98de\u884c\u68cb\uff0c\u652f\u6301\u57fa\u7840\u7248\u3001\u604b\u7231\u7248\u4e0e\u9ad8\u7ea7\u7248\u591a\u79cd\u6a21\u5f0f\uff0c\u53cc\u4eba\u5c40\u57df\u7f51\u7ecf\u5373\u53ef\u5f00\u73a9\uff0c\u5168\u90e8\u529f\u80fd\u514d\u8d39\u3002",
+  "description": "\u514d\u8d39\u5728\u7ebf\u60c5\u4fa3\u98de\u884c\u68cb\uff0c\u652f\u6301\u57fa\u7840\u7248\u3001\u604b\u7231\u7248\u4e0e\u9ad8\u7ea7\u7248\u591a\u79cd\u6a21\u5f0f\uff0c\u53cc\u4eba\u540c\u5c4f\u5373\u53ef\u5f00\u73a9\uff0c\u5168\u90e8\u529f\u80fd\u514d\u8d39\u3002",
   "inLanguage": "zh-CN",
   "isPartOf": { "@type": "WebSite", "@id": "https://couples-game.website/#website", "name": "\u60c5\u4fa3\u98de\u884c\u68cb", "url": "https://couples-game.website/" },
   "about": { "@type": "VideoGame", "name": "\u60c5\u4fa3\u98de\u884c\u68cb", "applicationCategory": "Game", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" } },
@@ -153,7 +153,7 @@ function render(template: string, locked: boolean, role: string): Response {
     // 按身份改写 lockVip 开关（游戏加载前读取）
     .replace("__LOCKVIP__", locked ? "true" : "false")
     // 文档基准修正：页面挂在 /fxq，bundle 懒加载 chunk 需相对 /fxq/static/
-    .replace("<head>", '<head><base href="/fxq/">' + FXQ_JSONLD)
+    .replace("<head>", '<head><base href="/fxq/">' + '<link rel="canonical" href="https://couples-game.website/fxq">' + '<meta name="description" content="\u60c5\u4fa3\u98de\u884c\u68cb\u5728\u7ebf\u73a9\uff1a\u652f\u6301\u53cc\u4eba\u540c\u5c4f\u7684\u60c5\u4fa3\u4e92\u52a8\u5c0f\u6e38\u620f\uff0c\u5305\u542b\u4ee5\u4e0b\u7248\u672c\uff1a\u57fa\u7840\u7248\u3001\u604b\u7231\u7248\u3001\u60c5\u4fa3\u7248\u3001\u9ad8\u7ea7\u7248\uff0c\u5168\u90e8\u514d\u8d39\u3002">' + '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">' + '<meta property="og:type" content="website">' + '<meta property="og:site_name" content="\u60c5\u4fa3\u98de\u884c\u68cb">' + '<meta property="og:url" content="https://couples-game.website/fxq">' + '<meta property="og:title" content="\u60c5\u4fa3\u98de\u884c\u68cb\u5728\u7ebf\u73a9 - \u53cc\u4eba\u4e92\u52a8\uff0c\u5168\u90e8\u514d\u8d39">' + '<meta property="og:description" content="\u514d\u8d39\u5728\u7ebf\u60c5\u4fa3\u98de\u884c\u68cb\uff0c\u652f\u6301\u591a\u79cd\u6a21\u5f0f\uff0c\u53cc\u4eba\u540c\u5c4f\u5373\u53ef\u5f00\u73a9\u3002">' + '<meta property="og:image" content="https://couples-game.website/logo.png">' + '<meta name="twitter:card" content="summary_large_image">' + '<meta name="twitter:title" content="\u60c5\u4fa3\u98de\u884c\u68cb\u5728\u7ebf\u73a9 - \u53cc\u4eba\u4e92\u52a8\uff0c\u5168\u90e8\u514d\u8d39">' + '<meta name="twitter:description" content="\u514d\u8d39\u5728\u7ebf\u60c5\u4fa3\u98de\u884c\u68cb\uff0c\u591a\u79cd\u6a21\u5f0f\u53cc\u4eba\u540c\u5c4f\u5f00\u73a9\u3002">' + FXQ_JSONLD)
     // 静态资源相对路径 ./static/ → /fxq/static/
     .replace(/=(["']?)\.\/static\//g, "=$1/fxq/static/")
     // 身份门控脚本注入到 #app 之后（body 已存在，遮罩可立即挂载）
