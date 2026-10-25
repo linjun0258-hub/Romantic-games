@@ -36,6 +36,9 @@ import * as $30 from "./routes/api/game-access.ts";
 import * as $31 from "./routes/fxq.tsx";
 import * as $32 from "./routes/hall.tsx";
 import * as $33 from "./routes/api/fxq/trial.ts";
+import * as $34 from "./routes/forgot.tsx";
+import * as $35 from "./routes/api/password/request.ts";
+import * as $36 from "./routes/api/password/reset.ts";
 
 import * as $$0 from "./islands/position-list.tsx";
 
@@ -55,12 +58,15 @@ const manifest = {
     "./routes/api/auth/signout.ts": $9,
     "./routes/api/creem/checkout.ts": $10,
     "./routes/api/creem/webhook.ts": $11,
-    "./routes/api/send-remind.ts": $12,
-    "./routes/api/game-access.ts": $30,
     "./routes/api/fxq/trial.ts": $33,
+    "./routes/api/game-access.ts": $30,
+    "./routes/api/password/request.ts": $35,
+    "./routes/api/password/reset.ts": $36,
+    "./routes/api/send-remind.ts": $12,
     "./routes/card.tsx": $13,
     "./routes/card_version.tsx": $14,
     "./routes/custom.tsx": $15,
+    "./routes/forgot.tsx": $34,
     "./routes/fxq.tsx": $31,
     "./routes/greet/[name].tsx": $16,
     "./routes/hall.tsx": $32,
