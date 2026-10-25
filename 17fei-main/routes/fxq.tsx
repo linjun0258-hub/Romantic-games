@@ -57,7 +57,7 @@ function ensureNav(){
   var n=document.getElementById("fxq-nav");
   if(!n){
     n=document.createElement("div");n.id="fxq-nav";
-    n.setAttribute("style","position:fixed;top:10px;left:10px;z-index:2147483600;display:flex;gap:8px;align-items:center;font-family:system-ui,-apple-system,sans-serif;");
+    n.setAttribute("style","position:fixed;top:10px;left:10px;z-index:2147483647;display:flex;gap:8px;align-items:center;font-family:system-ui,-apple-system,sans-serif;");
     var s="display:inline-flex;align-items:center;gap:4px;padding:8px 14px;border-radius:9999px;font-size:14px;font-weight:600;text-decoration:none;background:rgba(17,24,39,.85);color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;";
     n.innerHTML="<a id='fxq-nav-hall' href='/hall' style='"+s+"'>&#x1F3E0; 返回游戏大厅</a>"+
                 "<a id='fxq-nav-modes' href='#/' style='"+s+"'>&#x2190; 版本列表</a>";
@@ -65,6 +65,8 @@ function ensureNav(){
   }
   var m=document.getElementById("fxq-nav-modes");
   if(m){m.style.display=currentModeId()?"":"none";}
+  // 门控遮罩 z-index 同为最大值且后创建，需把导航重新追加到 body 末尾，确保始终位于遮罩之上可点击
+  if(n && n.parentNode && n.parentNode.lastChild!==n){(document.body||document.documentElement).appendChild(n);}
 }
 function gateLogin(){overlay("请先登录","注册 / 登录后，每天可体验基础版和恋爱版各 1 次",[{href:"/login",text:"登录 / 注册",primary:1},{href:"/premium",text:"了解会员",primary:0},backBtn()]);}
 function gateVip(name){overlay("会员专属版本",name+" 为会员专属，升级后解锁全部版本",[{href:"/premium",text:"升级会员解锁",primary:1},backBtn()]);}
