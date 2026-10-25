@@ -48,7 +48,7 @@ const GATE_JS = `
     var el = document.getElementById("gate-tip");
     if (!el) return;
     if (state.role === "member") {
-      el.textContent = "全部 100 个姿势免费畅玩，不限次数";
+      el.textContent = "会员畅玩全部 100 个姿势";
     } else if (state.role === "free") {
       el.textContent = "免费版可抽前 20 个姿势，升级会员解锁全部 100 个";
     } else if (state.remaining > 0) {
@@ -123,7 +123,7 @@ export default function Card() {
         <script
           dangerouslySetInnerHTML={{ __html: GATE_JS }}
         />
-        <title>情侣姿势卡牌游戏</title>
+        <title>情侣姿势卡牌游戏 - 100 个姿势随机抽卡（免费在线玩）</title>
       </Head>
       <div class="w-full leading-8 min-h-screen text-shadow bg-pink-400 text-lg text-red-100">
         <div class="max-w-screen-md mx-auto ">
