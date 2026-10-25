@@ -1,5 +1,5 @@
-// 新首页：公开营销落地页（游客可见），底部免费 vs 会员定价表
-// 已登录用户 302 → /hall 独立大厅；购买按钮 → /premium（现有「登录后开通」流程，未登录由 /premium 引导）
+// 首页：公开落地页，全部游戏所有版本完全免费，取消会员与付费
+// 已登录用户 302 → /hall 独立大厅
 import { Handlers } from "$fresh/server.ts";
 import { getUsernameFromRequest } from "../lib/userAuth.ts";
 
@@ -21,44 +21,37 @@ const GAMES = [
     href: "/fxq",
     icon: "🎲",
     name: "情侣飞行棋",
-    desc: "和对象一起掷骰子完成任务，基础版免费体验",
-    tag: "免费试玩",
+    desc: "和对象一起掷骰子完成任务，全部版本免费",
+    tag: "免费",
   },
   {
     href: "/card",
     icon: "🃏",
     name: "任务卡牌",
-    desc: "恋爱版免费体验，10 个主题版本会员解锁",
-    tag: "恋爱版免费",
+    desc: "10 个主题版本随机任务，随便抽",
+    tag: "免费",
   },
   {
     href: "/position",
     icon: "💗",
     name: "姿势卡牌",
-    desc: "100 个浪漫姿势随机抽，每天免费 3 次",
-    tag: "每日 3 抽",
+    desc: "100 个浪漫姿势随机抽，不限次数",
+    tag: "免费",
   },
   {
     href: "/positions",
     icon: "📖",
     name: "姿势大全",
-    desc: "完整姿势图鉴一览",
-    tag: "会员专享",
+    desc: "完整姿势图鉴一览，免费查看",
+    tag: "免费",
   },
 ];
 
 const FREE_FEATURES = [
-  "情侣飞行棋：基础版 / 恋爱版（游客每日 1 次）",
-  "任务卡牌：恋爱版（游客每日 3 抽）",
-  "姿势卡牌：游客每日 3 抽",
-  "注册登录后：飞行棋基础版 / 恋爱版每日各 1 次",
-];
-
-const PREMIUM_FEATURES = [
-  "全部游戏版本无限次畅玩",
-  "解锁全部主题棋盘与事件卡",
-  "会员专享：姿势大全完整图鉴",
-  "会员内容持续更新，新版本优先体验",
+  "全部游戏、全部版本无限次畅玩",
+  "全部主题棋盘与事件卡全解锁",
+  "姿势大全完整图鉴免费查看",
+  "新版本上线即免费体验",
 ];
 
 export default function Home() {
@@ -91,8 +84,11 @@ export default function Home() {
         <h1 class="text-4xl font-extrabold text-gray-800 mb-4">
           和另一半一起玩的<span class="text-pink-500">情侣小游戏</span>
         </h1>
-        <p class="text-gray-500 mb-8">
+        <p class="text-gray-500 mb-4">
           飞行棋 · 任务卡牌 · 姿势卡牌，让每一天都更甜一点
+        </p>
+        <p class="text-emerald-600 font-medium mb-8">
+          🎉 全部游戏、全部版本，永久免费
         </p>
         <div class="flex items-center justify-center gap-4">
           <a
@@ -102,10 +98,10 @@ export default function Home() {
             免费开始玩
           </a>
           <a
-            href="/premium"
+            href="/fxq"
             class="px-6 py-3 rounded-full border border-pink-300 text-pink-600 hover:bg-pink-50"
           >
-            查看会员
+            直接进入游戏
           </a>
         </div>
       </section>
@@ -121,7 +117,7 @@ export default function Home() {
             >
               <div class="flex items-center justify-between mb-3">
                 <span class="text-4xl">{g.icon}</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-600">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                   {g.tag}
                 </span>
               </div>
@@ -132,61 +128,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 定价表 */}
-      <section id="pricing" class="max-w-4xl mx-auto px-4 pb-20">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">
-          选择你的方案
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div class="bg-white rounded-2xl border border-gray-200 p-8">
-            <div class="text-lg font-bold text-gray-800 mb-1">免费版</div>
-            <div class="text-3xl font-extrabold text-gray-800 mb-6">$0</div>
-            <ul class="space-y-3 text-sm text-gray-600 mb-8">
-              {FREE_FEATURES.map((f) => (
-                <li class="flex gap-2">
-                  <span class="text-pink-500">✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a
-              href="/register"
-              class="block text-center px-5 py-3 rounded-full border border-pink-300 text-pink-600 hover:bg-pink-50 font-medium"
-            >
-              免费注册
-            </a>
+      {/* 免费说明 */}
+      <section id="pricing" class="max-w-3xl mx-auto px-4 pb-20">
+        <div class="bg-gradient-to-b from-emerald-400 to-teal-500 rounded-2xl p-8 text-white text-center">
+          <div class="text-lg font-bold mb-1">全部免费</div>
+          <div class="text-3xl font-extrabold mb-6">
+            ¥0<span class="text-base font-normal"> / 永久</span>
           </div>
-          <div class="bg-gradient-to-b from-pink-500 to-purple-500 rounded-2xl p-8 text-white relative">
-            <span class="absolute top-6 right-6 text-xs px-2 py-0.5 rounded-full bg-white text-pink-600 font-medium">
-              最受欢迎
-            </span>
-            <div class="text-lg font-bold mb-1">会员</div>
-            <div class="text-3xl font-extrabold mb-1">
-              $4.99<span class="text-base font-normal">/月</span>
-            </div>
-            <div class="text-sm text-pink-100 mb-6">无限次玩所有版本</div>
-            <ul class="space-y-3 text-sm text-pink-50 mb-8">
-              {PREMIUM_FEATURES.map((f) => (
-                <li class="flex gap-2">
-                  <span>✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a
-              href="/premium"
-              class="block text-center px-5 py-3 rounded-full bg-white text-pink-600 font-bold hover:bg-pink-50"
-            >
-              开通会员
-            </a>
-          </div>
+          <ul class="space-y-3 text-sm text-emerald-50 text-left max-w-md mx-auto mb-8">
+            {FREE_FEATURES.map((f) => (
+              <li class="flex gap-2">
+                <span>✓</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <a
+            href="/fxq"
+            class="inline-block px-6 py-3 rounded-full bg-white text-emerald-600 font-bold hover:bg-emerald-50"
+          >
+            立即开玩
+          </a>
         </div>
         <p class="text-center text-xs text-gray-400 mt-6">
-          开通即表示同意{" "}
-          <a href="/terms" class="underline">服务条款</a>{" "}
-          与{" "}
-          <a href="/privacy" class="underline">隐私政策</a>{" "}
-          · 随时取消
+          无需购买任何会员 · 无隐藏收费 · 直接开始玩
         </p>
       </section>
 
