@@ -4,6 +4,7 @@
 //   2. 一次性：校验通过立即标记 used，防重放
 //   3. 10 分钟过期；同一验证码最多尝试 5 次，防止 6 位码被暴力枚举
 //   4. 新码签发时作废该邮箱所有旧码，保证只有最新一封邮件有效
+//   5. 发信结果必须回传给调用方，禁止“发信失败也显示已发送”的静默失败
 import { sql } from "./db.ts";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { hashPassword } from "./userAuth.ts";
@@ -144,41 +145,110 @@ export async function updatePasswordByEmail(
   return updated.length > 0;
 }
 
-// 发送验证码邮件（复用既有 Resend 配置）
+// ---------- 发信（复用既有 Resend 配置），必须返回可判定的结果 ----------
+
+export interface MailResult {
+  ok: boolean;
+  status?: number;
+  /** Resend 返回的错误正文，仅用于服务端日志/诊断，勿直接展示给终端用户 */
+  detail?: string;
+  /** missing_api_key | resend_rejected | network */
+  reason?: "missing_api_key" | "resend_rejected" | "network";
+}
+
+// 实际发信的发件人。未配置 MAIL_FROM 时退回 Resend 沙箱地址，
+// 该地址只能发给 Resend 账号所有者本人，务必在 Vercel 配置自有域名地址。
+export function mailFromAddress(): string {
+  const v = Deno.env.get("MAIL_FROM")?.trim();
+  return v && v.length > 0 ? v : "Couple Game <onboarding@resend.dev>";
+}
+
+async function sendMail(
+  email: string,
+  subject: string,
+  html: string,
+): Promise<MailResult> {
+  const apiKey = Deno.env.get("RESEND_API_KEY")?.trim();
+  if (!apiKey) {
+    console.error("[password-reset] 缺少 RESEND_API_KEY，无法发送邮件");
+    return { ok: false, reason: "missing_api_key" };
+  }
+
+  const from = mailFromAddress();
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject,
+        html,
+      }),
+    });
+
+    // 必须读出正文，Resend 的失败原因（域名未验证 / 收件人不允许）都在里面
+    const text = await res.text().catch(() => "");
+
+    if (!res.ok) {
+      console.error(
+        `[password-reset] 发信失败 status=${res.status} from="${from}" to="${email}" body=${text.slice(0, 500)}`,
+      );
+      return {
+        ok: false,
+        status: res.status,
+        detail: text.slice(0, 300),
+        reason: "resend_rejected",
+      };
+    }
+
+    console.log(`[password-reset] 发信成功 status=${res.status} from="${from}"`);
+    return { ok: true, status: res.status };
+  } catch (err) {
+    console.error("[password-reset] 发信异常", err);
+    return { ok: false, reason: "network" };
+  }
+}
+
+// 发送重置验证码邮件
 export async function sendResetMail(
   email: string,
   code: string,
-): Promise<boolean> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("MAIL_FROM") ??
-    "Couple Game <onboarding@resend.dev>";
-  if (!apiKey) {
-    console.error("[password-reset] 缺少 RESEND_API_KEY，无法发送验证码");
-    return false;
-  }
+): Promise<MailResult> {
+  return await sendMail(
+    email,
+    "密码重置验证码",
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <h2>重置你的登录密码</h2>
+      <p>你正在重置密码，本次验证码为：</p>
+      <p style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#db2777">${code}</p>
+      <p>验证码 <strong>${CODE_TTL_MINUTES} 分钟内</strong>有效，仅可使用一次。</p>
+      <p style="color:#999;font-size:12px">如果这不是你本人的操作，请忽略本邮件，你的密码不会被更改。</p>
+    </div>`,
+  );
+}
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [email],
-      subject: "密码重置验证码",
-      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-        <h2>重置你的登录密码</h2>
-        <p>你正在重置密码，本次验证码为：</p>
-        <p style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#db2777">${code}</p>
-        <p>验证码 <strong>${CODE_TTL_MINUTES} 分钟内</strong>有效，仅可使用一次。</p>
-        <p style="color:#999;font-size:12px">如果这不是你本人的操作，请忽略本邮件，你的密码不会被更改。</p>
-      </div>`,
-    }),
-  });
-
-  if (!res.ok) {
-    console.error(`[password-reset] 发信失败 ${res.status}: ${await res.text()}`);
-  }
-  return res.ok;
+// 发送“用户名提醒”邮件：用于同时忘记用户名和密码的场景
+export async function sendUsernameMail(
+  email: string,
+  username: string,
+): Promise<MailResult> {
+  return await sendMail(
+    email,
+    "你的登录用户名",
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <h2>你的登录用户名</h2>
+      <p>你在情侣飞行棋的登录用户名是：</p>
+      <p style="font-size:24px;font-weight:bold;letter-spacing:2px;color:#db2777">${username}</p>
+      <p>如果密码也忘记了，可以直接到
+        <a href="https://couples-game.website/forgot">找回密码</a>页，
+        用这个邮箱收验证码重置密码，不需要输入用户名。
+      </p>
+      <p style="color:#999;font-size:12px">如果这不是你本人的操作，请忽略本邮件。</p>
+    </div>`,
+  );
 }
