@@ -54,14 +54,88 @@ const FREE_FEATURES = [
   "新版本上线即免费体验",
 ];
 
+// FAQ 内容：既用于页面可见区域，也同步输出 FAQPage 结构化数据
+// 让搜索引擎与 AI 搜索（ChatGPT / Perplexity / 豆包 / Kimi 等）都能直接引用答案
+const FAQS = [
+  {
+    q: "情侣飞行棋是什么？怎么玩？",
+    a: "情侣飞行棋是一款面向情侣的在线互动小游戏。两个人轮流掷骰子沿棋盘前进，落在不同格子会触发任务卡、真心话或甜蜜互动事件，先到达终点的一方获胜。全程在网页里完成，不需要下载 App，手机和电脑都能玩。",
+  },
+  {
+    q: "情侣飞行棋要收费吗？需要开通会员吗？",
+    a: "完全免费。所有游戏、所有版本（基础版、恋爱版、情侣版、高级版、私密版、自定义模式）全部开放，没有会员、没有订阅、没有隐藏收费，也不需要付费解锁任何内容。",
+  },
+  {
+    q: "两个人异地可以一起玩吗？",
+    a: "可以。打开同一个网页即可双人同玩，异地情侣可以开视频通话，一边视频一边按网页提示轮流操作，体验和面对面基本一致。",
+  },
+  {
+    q: "需要注册账号吗？",
+    a: "大部分游戏（飞行棋、任务卡牌、姿势卡牌、姿势大全）打开网页就能直接玩，不注册也可以。注册账号只是为了保存你的游戏记录与偏好设置，同样免费。",
+  },
+  {
+    q: "情侣飞行棋有哪些游戏模式？",
+    a: "目前提供飞行棋的六个模式（基础版、恋爱版、情侣版、高级版、私密版、自定义模式），另有 10 个主题版本的任务卡牌、100 个姿势的姿势卡牌随机抽取，以及完整的姿势大全图鉴。",
+  },
+  {
+    q: "适合什么阶段的情侣玩？",
+    a: "因为有多档模式，刚在一起的情侣可以从基础版、恋爱版开始，相处较久的情侣可以选择情侣版或更高阶的模式。所有模式都免费，可以自行选择舒服的节奏。",
+  },
+];
+
+const SITE = "https://couples-game.website";
+
+function buildPageJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": SITE + "/#app",
+        name: "情侣飞行棋",
+        applicationCategory: "GameApplication",
+        operatingSystem: "Web",
+        url: SITE + "/",
+        inLanguage: "zh-CN",
+        description:
+          "情侣互动在线小游戏，包含飞行棋、任务卡牌与姿势卡牌，全部免费，无需下载。",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "CNY",
+          availability: "https://schema.org/InStock",
+        },
+        featureList: FREE_FEATURES,
+      },
+      {
+        "@type": "FAQPage",
+        "@id": SITE + "/#faq",
+        mainEntity: FAQS.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: f.a,
+          },
+        })),
+      },
+    ],
+  };
+}
+
 export default function Home() {
   return (
     <div class="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildPageJsonLd()) }}
+      />
+
       {/* 顶部导航 */}
       <header class="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
         <div class="flex items-center gap-2">
-          <img src="/logo.png" alt="情侣游戏" class="h-8 w-8 rounded" />
-          <span class="text-lg font-bold text-pink-600">情侣游戏</span>
+          <img src="/logo.png" alt="情侣飞行棋 logo" class="h-8 w-8 rounded" />
+          <span class="text-lg font-bold text-pink-600">情侣飞行棋</span>
         </div>
         <nav class="flex items-center gap-3 text-sm">
           <a
@@ -82,32 +156,36 @@ export default function Home() {
       {/* Hero */}
       <section class="max-w-5xl mx-auto px-4 pt-10 pb-12 text-center">
         <h1 class="text-4xl font-extrabold text-gray-800 mb-4">
-          和另一半一起玩的<span class="text-pink-500">情侣小游戏</span>
+          情侣飞行棋 —— 和另一半一起玩的
+          <span class="text-pink-500">在线互动小游戏</span>
         </h1>
         <p class="text-gray-500 mb-4">
-          飞行棋 · 任务卡牌 · 姿势卡牌，让每一天都更甜一点
+          旅行棋、任务卡牌、姿势卡牌，打开网页就能双人同玩
         </p>
         <p class="text-emerald-600 font-medium mb-8">
-          🎉 全部游戏、全部版本，永久免费
+          🎉 全部游戏、全部版本，永久免费，无需下载
         </p>
         <div class="flex items-center justify-center gap-4">
           <a
-            href="/register"
+            href="/fxq"
             class="px-6 py-3 rounded-full bg-pink-500 text-white font-medium hover:bg-pink-600"
           >
-            免费开始玩
+            立即开始玩
           </a>
           <a
-            href="/fxq"
+            href="/register"
             class="px-6 py-3 rounded-full border border-pink-300 text-pink-600 hover:bg-pink-50"
           >
-            直接进入游戏
+            免费注册
           </a>
         </div>
       </section>
 
       {/* 游戏卡片 */}
       <section class="max-w-5xl mx-auto px-4 pb-16">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          全部游戏，全部免费
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {GAMES.map((g) => (
             <a
@@ -121,7 +199,7 @@ export default function Home() {
                   {g.tag}
                 </span>
               </div>
-              <div class="font-bold text-gray-800 mb-1">{g.name}</div>
+              <h3 class="font-bold text-gray-800 mb-1">{g.name}</h3>
               <div class="text-sm text-gray-500">{g.desc}</div>
             </a>
           ))}
@@ -129,7 +207,10 @@ export default function Home() {
       </section>
 
       {/* 免费说明 */}
-      <section id="pricing" class="max-w-3xl mx-auto px-4 pb-20">
+      <section id="pricing" class="max-w-3xl mx-auto px-4 pb-16">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          价格：全部免费
+        </h2>
         <div class="bg-gradient-to-b from-emerald-400 to-teal-500 rounded-2xl p-8 text-white text-center">
           <div class="text-lg font-bold mb-1">全部免费</div>
           <div class="text-3xl font-extrabold mb-6">
@@ -155,8 +236,29 @@ export default function Home() {
         </p>
       </section>
 
+      {/* 常见问题：GEO 关键区块，问答式结构便于被 AI 搜索直接引用 */}
+      <section id="faq" class="max-w-3xl mx-auto px-4 pb-20">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          常见问题
+        </h2>
+        <div class="space-y-3">
+          {FAQS.map((f) => (
+            <details
+              class="bg-white rounded-xl border border-pink-100 p-5"
+              open={false}
+            >
+              <summary class="font-semibold text-gray-800 cursor-pointer list-none">
+                <h3 class="inline">{f.q}</h3>
+              </summary>
+              <p class="mt-3 text-sm leading-relaxed text-gray-600">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <footer class="border-t border-pink-100 py-6 text-center text-sm text-gray-400">
         <div class="max-w-5xl mx-auto flex items-center justify-center gap-4">
+          <a href="/about" class="hover:text-gray-600">关于我们</a>
           <a href="/privacy" class="hover:text-gray-600">隐私政策</a>
           <a href="/terms" class="hover:text-gray-600">服务条款</a>
         </div>
