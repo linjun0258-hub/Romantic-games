@@ -8,4 +8,55 @@ Disallow: /api/
 Disallow: /login
 Disallow: /register
 
+# 显式允许主流 AI 搜索 / 生成式引擎抓取，便于被 ChatGPT、Perplexity、豆包、Kimi 等引用
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+Disallow: /api/
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+User-agent: YisouSpider
+Allow: /
+Disallow: /api/
+
+User-agent: PetalBot
+Allow: /
+Disallow: /api/
+
 Sitemap: https://couples-game.website/sitemap.xml
