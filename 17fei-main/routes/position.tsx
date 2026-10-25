@@ -152,6 +152,86 @@ export default function Card() {
           </div>
         </div>
       </div>
+      <section class="max-w-screen-md mx-auto mt-10 mb-8 px-4">
+        <div class="bg-white text-gray-800 rounded-2xl p-6 leading-8 text-left shadow">
+          <h1 class="text-2xl font-extrabold text-pink-700 mb-4 leading-snug">
+            情侣姿势卡牌：100 个姿势随机抽卡，免费在线玩
+          </h1>
+          <p class="mb-3">
+            情侣姿势卡牌把「今天试什么」这件事交给了抽卡。整副牌收录 100 个不同姿势，点一下随机抽一张，抽到哪张就参考哪张，省去两个人翻来覆去商量和临时想不出来的尴尬。每张牌都有名称和编号，方便你们记住喜欢的那些，下次直接找回来。
+          </p>
+          <p class="mb-5">
+            全部 100 个姿势免费开放，不限抽取次数，无需购买会员。请双方自愿、注意舒适与安全，把它当作增进亲密感的辅助小游戏。
+          </p>
+
+          <h2 class="text-lg font-bold text-pink-700 mt-6 mb-2">怎么玩？</h2>
+          <ol class="list-decimal pl-6 mb-4 space-y-1">
+            <li>两个人一起打开这个页面。</li>
+            <li>点击卡牌，随机抽出一个姿势。</li>
+            <li>看到名称后按自己的节奏尝试，觉得不合适就再抽一张。</li>
+            <li>喜欢的可以记下编号，下次直接复用。</li>
+          </ol>
+          <p class="mb-5">没有输赢也没有回合限制，抽几张完全由你们决定。</p>
+
+          <h2 class="text-lg font-bold text-pink-700 mt-6 mb-2">100 个姿势涵盖哪些类型？</h2>
+          <p class="mb-3">
+            卡牌按难易程度和使用场景分为不同类别，既有适合刚开始尝试的基础款，也有需要更多默契的进阶款。如果想把 100 个姿势一次看全，可以打开
+            <a href="/positions" class="text-pink-600 underline">情侣姿势大全</a>
+            图鉴按分类浏览。
+          </p>
+
+          <h2 class="text-lg font-bold text-pink-700 mt-6 mb-3">常见问题</h2>
+          <h3 class="font-bold mt-4 mb-1">情侣姿势卡牌要付费吗？</h3>
+          <p class="mb-3">不需要。100 个姿势全部免费，不限抽取次数，也没有会员门槛。</p>
+          <h3 class="font-bold mt-4 mb-1">抽到的姿势不喜欢怎么办？</h3>
+          <p class="mb-3">直接再抽一张即可，没有次数限制，也没有惩罚机制。</p>
+          <h3 class="font-bold mt-4 mb-1">和姿势大全有什么区别？</h3>
+          <p class="mb-3">
+            姿势卡牌是随机抽取、一张一张玩；<a href="/positions" class="text-pink-600 underline">姿势大全</a>是完整图鉴，可以按分类慢慢看、自己挑。
+          </p>
+          <h3 class="font-bold mt-4 mb-1">需要下载 App 吗？</h3>
+          <p class="mb-5">不需要，浏览器打开就能用，手机和电脑都支持。</p>
+
+          <h2 class="text-lg font-bold text-pink-700 mt-6 mb-2">其他免费玩法</h2>
+          <ul class="list-disc pl-6">
+            <li class="mb-1"><a href="/fxq" class="text-pink-600 underline">情侣飞行棋</a>：7 种模式的棋盘互动游戏。</li>
+            <li class="mb-1"><a href="/card" class="text-pink-600 underline">情侣任务卡牌</a>：抽卡完成浪漫任务。</li>
+            <li class="mb-1"><a href="/positions" class="text-pink-600 underline">情侣姿势大全</a>：完整图鉴免费查看。</li>
+            <li><a href="/" class="text-pink-600 underline">返回首页</a>，查看全部游戏。</li>
+          </ul>
+        </div>
+      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "情侣姿势卡牌要付费吗？",
+                "acceptedAnswer": { "@type": "Answer", "text": "不需要。100 个姿势全部免费，不限抽取次数，也没有会员门槛。" },
+              },
+              {
+                "@type": "Question",
+                "name": "抽到的姿势不喜欢怎么办？",
+                "acceptedAnswer": { "@type": "Answer", "text": "直接再抽一张即可，没有次数限制，也没有惩罚机制。" },
+              },
+              {
+                "@type": "Question",
+                "name": "和姿势大全有什么区别？",
+                "acceptedAnswer": { "@type": "Answer", "text": "姿势卡牌是随机抽取、一张一张玩；姿势大全是完整图鉴，可以按分类慢慢看、自己挑。" },
+              },
+              {
+                "@type": "Question",
+                "name": "需要下载 App 吗？",
+                "acceptedAnswer": { "@type": "Answer", "text": "不需要，浏览器打开就能用，手机和电脑都支持。" },
+              },
+            ],
+          }),
+        }}
+      />
     </>
   );
 }
