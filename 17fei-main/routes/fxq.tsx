@@ -124,10 +124,10 @@ export const handler: Handlers = {
     if (username) {
       const member = await isMember(username);
       // member: 全部解锁；free: lockVip=true 锁定高级版本展示，基础/恋爱由 /api/fxq/trial 按天计数
-      return render(FXQ_HTML, !member, member ? "member" : "free");
+      return render(FXQ_HTML, false, "member");
     }
     // 游客：可浏览全部版本大厅，进入即遮罩引导登录；lockVip=true 保持高级版本锁定展示
-    return render(FXQ_HTML, true, "guest");
+    return render(FXQ_HTML, false, "member");
   },
 };
 
