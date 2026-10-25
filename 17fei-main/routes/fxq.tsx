@@ -47,6 +47,25 @@ function overlay(title,desc,btns){
   (document.body||document.documentElement).appendChild(o);
 }
 function backBtn(){return {href:"#/",text:"返回大厅",primary:0};}
+
+// 站内品牌标题锁：游戏 bundle 运行后会把 document.title 改回模板残留名称（晓倩笔记）
+var BRAND_TITLE="情侣飞行棋 - 情侣互动小游戏";
+function lockTitle(){try{if(document.title!==BRAND_TITLE)document.title=BRAND_TITLE;}catch(e){}}
+
+// 常驻返回导航：左上角「游戏大厅」始终可见，「版本列表」仅在棋盘页(mode!=0)出现
+function ensureNav(){
+  var n=document.getElementById("fxq-nav");
+  if(!n){
+    n=document.createElement("div");n.id="fxq-nav";
+    n.setAttribute("style","position:fixed;top:10px;left:10px;z-index:2147483600;display:flex;gap:8px;align-items:center;font-family:system-ui,-apple-system,sans-serif;");
+    var s="display:inline-flex;align-items:center;gap:4px;padding:8px 14px;border-radius:9999px;font-size:14px;font-weight:600;text-decoration:none;background:rgba(17,24,39,.85);color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;";
+    n.innerHTML="<a id='fxq-nav-hall' href='/hall' style='"+s+"'>&#x1F3E0; 返回游戏大厅</a>"+
+                "<a id='fxq-nav-modes' href='#/' style='"+s+"'>&#x2190; 版本列表</a>";
+    (document.body||document.documentElement).appendChild(n);
+  }
+  var m=document.getElementById("fxq-nav-modes");
+  if(m){m.style.display=currentModeId()?"":"none";}
+}
 function gateLogin(){overlay("请先登录","注册 / 登录后，每天可体验基础版和恋爱版各 1 次",[{href:"/login",text:"登录 / 注册",primary:1},{href:"/premium",text:"了解会员",primary:0},backBtn()]);}
 function gateVip(name){overlay("会员专属版本",name+" 为会员专属，升级后解锁全部版本",[{href:"/premium",text:"升级会员解锁",primary:1},backBtn()]);}
 function gateUsed(name){overlay("今日体验已用完",name+" 每天可体验 1 次，明天再来，或升级会员不限次数",[{href:"/premium",text:"升级会员不限次",primary:1},backBtn()]);}
@@ -62,6 +81,7 @@ var lastId=0;
 
 // 核心校验：进入棋盘页(mode) 时按身份放行或弹遮罩
 function guardBoard(){
+  try{ensureNav();lockTitle();}catch(e){}
   var id=currentModeId();
   if(!id){ if(lastId!==0){lastId=0;removeOverlay();} return; }
   if(id!==lastId){ lastId=id; inflight=false; } // 切换模式时重置
