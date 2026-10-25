@@ -78,8 +78,8 @@ export async function handler(
     "/custom",
     "/verify",
     "/join",
-    "/card_version",
-    "/positions",
+     
+     
     "/ai",
     "/aiok",
     "/unopen",
