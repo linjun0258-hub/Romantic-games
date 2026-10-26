@@ -29,13 +29,13 @@ export default function Privacy() {
           <ul class="list-disc pl-6 mt-2">
             <li>账号信息：注册时提供的邮箱地址与用户名，用于创建和识别你的账号。</li>
             <li>游戏数据：房间与对局记录、任务完成状态等，用于双人同步游戏进度。</li>
-            <li>支付信息：付款由第三方支付服务商（Dodo Payments 或 Creem）处理。本站不收集或存储你的银行卡号等支付凭据，仅接收支付服务商回传的订单号、订阅状态与订阅邮箱等必要信息，用于开通和管理会员权益。</li>
+            <li>支付信息：本站当前不提供任何付费项目，因此不收集、不存储你的银行卡号或其他支付凭据。</li>
             <li>安全验证信息：本站使用 Cloudflare Turnstile 进行人机验证，相关数据由 Cloudflare 按其隐私政策处理。</li>
           </ul>
 
           <h2 class="text-xl font-bold mt-8">二、信息的使用</h2>
           <p class="mt-2">
-            我们仅将上述信息用于：提供和维护游戏服务；开通、管理会员与处理订单；发送与账号或订单相关的必要通知；改进站内体验与排查故障。我们不会出售你的个人信息。
+            我们仅将上述信息用于：提供和维护游戏服务；管理账号与对局进度；发送与账号相关的必要通知；改进站内体验与排查故障。我们不会出售你的个人信息。
           </p>
 
           <h2 class="text-xl font-bold mt-8">三、Cookie 与本地存储</h2>
@@ -45,7 +45,7 @@ export default function Privacy() {
 
           <h2 class="text-xl font-bold mt-8">四、第三方服务</h2>
           <ul class="list-disc pl-6 mt-2">
-            <li>Dodo Payments / Creem：付款、订阅管理与退款由支付服务商作为商户记录方（Merchant of Record）处理，其数据处理受相应服务商的隐私政策约束。</li>
+            <li>Vercel：本站的托管与内容分发平台，访问日志按其隐私政策处理。</li>
             <li>Cloudflare：Turnstile 人机验证。</li>
           </ul>
 
@@ -61,7 +61,7 @@ export default function Privacy() {
 
           <h2 class="text-xl font-bold mt-8">七、数据安全</h2>
           <p class="mt-2">
-            本站全程使用 HTTPS 加密传输，并对支付回跳等敏感操作进行签名验证，防止数据被篡改或伪造。
+            本站全程使用 HTTPS 加密传输，并对登录等敏感操作进行签名校验，防止数据被篡改或伪造。
           </p>
 
           <h2 class="text-xl font-bold mt-8">八、政策更新</h2>
