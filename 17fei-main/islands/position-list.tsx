@@ -110,9 +110,9 @@ export default function PositionList({ positions }: Props) {
         class="sm:flex-row sm:items-center sm:justify-between"
       >
         <div style="display:flex;align-items:baseline;gap:8px;">
-          <h1 class="text-lg font-bold" style="color:#1f2937;margin:0;">
+          <h2 class="text-lg font-bold" style="color:#1f2937;margin:0;">
             姿势大全
-          </h1>
+          </h2>
           <span class="text-xs" style="color:#6b7280;">
             已配图 <strong style="color:#db2777;">{loaded}</strong> / {total}
           </span>
