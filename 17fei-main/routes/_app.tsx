@@ -3,11 +3,20 @@ import { AppProps } from "$fresh/server.ts";
 const SITE_URL = "https://couples-game.website";
 const SITE_NAME = "情侣飞行棋";
 const OG_IMAGE = SITE_URL + "/kiss-banana.png";
+const OG_LOGO = SITE_URL + "/logo.png";
+// 默认分享图（游戏图，横向大图卡片效果更好）
+const DEFAULT_IMG = { w: 466, h: 536 };
+const LOGO_IMG = { w: 216, h: 216 };
 
 interface SeoConfig {
   title: string;
   description: string;
   noindex?: boolean;
+  /** 页面级社交分享图；不填则用默认图 */
+  image?: string;
+  /** 分享图像素尺寸，便于平台预渲染大图卡片 */
+  imageW?: number;
+  imageH?: number;
 }
 
 // 每个路由独立 title / description：避免全站共用同一标题被判定内容重复
@@ -30,7 +39,7 @@ const SEO_MAP: Record<string, SeoConfig> = {
   "/card_version": {
     title: "情侣任务卡牌版本列表 - 选择你的主题（免费）",
     description:
-      "查看情侣任务卡牌的全部主题版本，选择喜欢的风格开始抽取随机任务卡，所有版本免费开放。",
+      "情侣任务卡牌的全部 10 个主题版本都在这里：从基础版、恋爱版到热恋版、同居版、进阶版，按你们的关系阶段和场合挑选合适的牌组，点开即可开始抽取随机任务卡，所有版本全部免费、不限次数。",
   },
   "/position": {
     title: "情侣姿势卡牌 - 100 个浪漫姿势随机抽（免费）",
@@ -40,7 +49,10 @@ const SEO_MAP: Record<string, SeoConfig> = {
   "/positions": {
     title: "情侣姿势大全 - 100 个姿势图鉴完整版（免费查看）",
     description:
-      "情侣姿势大全完整图鉴，收录 100 个浪漫互动姿势并配示意图，可逐个查看学习，全部免费开放，无需注册。",
+      "情侣姿势大全完整图鉴，收录 100 个浪漫互动姿势，按名称与编号逐个检索浏览，每个条目附示意图位与难度标签。支持搜索筛选，全部免费开放、无需注册、手机与电脑均可查看。",
+    image: OG_LOGO,
+    imageW: LOGO_IMG.w,
+    imageH: LOGO_IMG.h,
   },
   "/premium": {
     title: "全部功能免费 - 情侣飞行棋会员说明",
@@ -50,16 +62,26 @@ const SEO_MAP: Record<string, SeoConfig> = {
   "/about": {
     title: "关于我们 - 情侣飞行棋",
     description:
-      "了解情侣飞行棋的产品定位、玩法设计与隐私保护原则：一款为情侣打造的在线互动小游戏，全部功能免费开放。",
+      "了解情侣飞行棋的产品定位、玩法设计与隐私保护原则：一款为情侣打造的在线互动小游戏，包含飞行棋、任务卡牌与姿势卡牌三类玩法，现全部功能免费开放，无需会员与订阅。",
+    image: OG_LOGO,
+    imageW: LOGO_IMG.w,
+    imageH: LOGO_IMG.h,
   },
   "/privacy": {
     title: "隐私政策 - 情侣飞行棋",
     description:
-      "情侣飞行棋隐私政策：说明我们如何收集、使用与保护你的账号信息与使用数据。",
+      "情侣飞行棋隐私政策：详细说明我们收集哪些账号信息与游戏数据、如何使用与保护这些信息、Cookie 与本地存储的用途、第三方服务范围，以及你享有的数据导出与删除权利。",
+    image: OG_LOGO,
+    imageW: LOGO_IMG.w,
+    imageH: LOGO_IMG.h,
   },
   "/terms": {
     title: "服务条款 - 情侣飞行棋",
-    description: "情侣飞行棋服务条款，说明使用本站游戏服务时的权利、义务与免责声明。",
+    description:
+      "情侣飞行棋服务条款：说明使用本站游戏服务时的账号规则、用户内容规范、免费使用说明、免责声明与条款变更方式，帮助你在使用前了解双方的权利与义务。",
+    image: OG_LOGO,
+    imageW: LOGO_IMG.w,
+    imageH: LOGO_IMG.h,
   },
   "/login": {
     title: "登录 - 情侣飞行棋",
@@ -122,6 +144,9 @@ export default function App({ Component, url, route }: AppProps) {
   const routeKey = (route as string) || pathname;
   const seo = SEO_MAP[routeKey] || SEO_MAP[pathname] || DEFAULT_SEO;
   const canonical = SITE_URL + (pathname === "/" ? "/" : pathname);
+  const ogImage = seo.image || OG_IMAGE;
+  const ogImageW = seo.imageW || DEFAULT_IMG.w;
+  const ogImageH = seo.imageH || DEFAULT_IMG.h;
   const robots = seo.noindex
     ? "noindex,nofollow"
     : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
@@ -145,13 +170,18 @@ export default function App({ Component, url, route }: AppProps) {
         <meta property="og:title" content={seo.title} />
         <meta property="og:description" content={seo.description} />
         <meta property="og:url" content={canonical} />
-        <meta property="og:image" content={OG_IMAGE} />
-        <meta property="og:image:alt" content="情侣飞行棋 - 情侣互动小游戏" />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content={String(ogImageW)} />
+        <meta property="og:image:height" content={String(ogImageH)} />
+        <meta property="og:image:alt" content={seo.title} />
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={seo.title} />
         <meta name="twitter:description" content={seo.description} />
-        <meta name="twitter:image" content={OG_IMAGE} />
+        <meta name="twitter:image" content={ogImage} />
+        <meta name="twitter:image:alt" content={seo.title} />
+        <meta name="twitter:site" content={SITE_NAME} />
 
         <script
           type="application/ld+json"
