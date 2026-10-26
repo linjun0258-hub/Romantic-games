@@ -10,13 +10,12 @@ export default function About() {
           </a>
         </div>
         <div class="max-auto mt-8 max-w-lg leading-8 text-gray-900">
-          <div class="text-lg text-gray-500">关于本站</div>
+          <h1 class="text-lg text-gray-500">关于本站</h1>
           <div class="my-4">
             情侣情趣飞行棋是专为情侣设计的线上互动游戏：掷骰子、抽卡牌、完成甜蜜任务，把两个人的约会变成一场冒险。无需下载，打开网页即可与伴侣一起玩，支持手机、平板与电脑。
           </div>
           <div class="my-4">
-            基础内容免费畅玩；Premium 会员 $4.99/月（可随时取消），解锁全部主题棋盘、事件卡、专属情侣任务与纪念日提醒。定价详情见
-            <a href="/premium" class="underline"> 会员定价页 </a>。
+            站内全部内容目前完全免费开放：情侣飞行棋的 7 种模式、情侣任务卡牌的 10 个主题、情侣姿势卡牌与情侣姿势大全的 100 个姿势，都可以直接玩，不需要购买会员，也没有隐藏收费。
           </div>
           <div class="my-4">
             使用本站即表示同意
